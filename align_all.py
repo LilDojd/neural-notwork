@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
-"""Align all other files to 1 file using align/cealign algorithms and save alignment as pdb"""
+"""Align all other files to 1 file using align/cealign algorithms and save alignment as pdb
+LAUNCH WITH PYTHON3 Anaconda PyMol"""
 
 import argparse
 import sys
