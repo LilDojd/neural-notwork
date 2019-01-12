@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import scipy.spatial
 
-from parsegro import gro_parser, get_coordinates, write_gro, renumber
+from suplementary_scripts.parsegro import gro_parser, get_coordinates, write_gro, renumber
 
 """ VdW values are hardcoded
     ???  H     0.12
