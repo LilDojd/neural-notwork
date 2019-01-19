@@ -8,6 +8,7 @@ try:
 except ModuleNotFoundError:
     pass
 import argparse
+import os
 from pathlib import Path
 
 
@@ -34,9 +35,13 @@ def get_shell(reslist: list, structure: prody.AtomGroup, radii: float) -> dict:
 
 
 def extract_res_list(resifile):
-    content = Path(resifile).read_text()
-    residues_new = content.split()
-    return residues_new
+    if os.path.exists(resifile):
+        content = Path(resifile).read_text()
+        residues_new = content.split()
+        return residues_new
+    else:
+        print("File with selected residues does not exist in current directory")
+        pass
 
 
 def get_structure(pdb_file):
