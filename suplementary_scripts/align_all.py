@@ -4,18 +4,18 @@
 LAUNCH WITH PYTHON3 Anaconda PyMol"""
 
 import argparse
+import glob
+import re
 import sys
 
 from pymol import cmd
-import glob
-import re
 
 
 def line_prepender(filename, line):
     with open(filename, 'r+') as f:
-        content = f.read()
+        contents = f.read()
         f.seek(0, 0)
-        f.write(line.rstrip('\r\n') + '\n' + content)
+        f.write(line.rstrip('\r\n') + '\n' + contents)
 
 
 def align_allfiles(target=None, files=None, mobile_selection='name ca', target_selection='name ca', cutoff=2, cycles=5,
@@ -37,8 +37,8 @@ def align_allfiles(target=None, files=None, mobile_selection='name ca', target_s
       each object.  They will be named like <object>_on_<target>, where <object> and
       <target> will be replaced by the real object and target names.
 
-      Example:
-        align_allfiles target=name1.pdb, files=model.B9999*.pdb, mobile_selection=c. b & n. n+ca+c+o,target_selection=c. a & n. n+ca+c+o
+      Example: align_allfiles target=name1.pdb, files=model.B9999*.pdb, mobile_selection=c. b & n. n+ca+c+o,
+      target_selection=c. a & n. n+ca+c+o
 
     """
     cutoff = float(cutoff)
@@ -48,7 +48,7 @@ def align_allfiles(target=None, files=None, mobile_selection='name ca', target_s
     file_list = glob.glob(files)
     file_list.sort()
     file_list = [s for s in file_list if target not in s]
-    extension = re.compile('(^.*[/]|\.(pdb|ent|brk))')
+    extension = re.compile("(^.*[/]|\.(pdb|ent|brk))")
     object_list = []
 
     target_obj = extension.sub('', target)
@@ -132,8 +132,8 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--mob_sel", dest="mob_sel", nargs="?", default="name ca",
                         help="By default the selection is all "
                              "C-alpha atoms")
-    parser.add_argument("--cgo", dest="cgo", nargs="?", default=0, type=int, help="Names of files to align")
-    parser.add_argument("--method", dest="method", nargs="?", default="align", help="Names of files to align")
+    parser.add_argument("--cgo", dest="cgo", nargs="?", default=0, type=int, help="CGO object")
+    parser.add_argument("--method", dest="method", nargs="?", default="align", help="Align or cealign")
 
     args = parser.parse_args()
 

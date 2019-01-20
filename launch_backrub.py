@@ -2,9 +2,9 @@
 
 """Generate backrub resfiles for each mutation of each residue in a set"""
 import argparse
-import sys
 import os
 import subprocess
+import sys
 import time
 
 try:
@@ -104,7 +104,6 @@ def start_backrub(directory):
         f"(cd {directory}; bash ros.bash {pdb} dfpase.resfile 1>> "
         f"rosetta.log;echo Backrub finished for {directory};cd ../../)",
         shell=True)
-    print("### Off to the next one")
     pass
 
 
@@ -113,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument("pdb", help="Path to pdb file")
     parser.add_argument("reslist", help="Path to a file containing list of atoms to mutate")
     parser.add_argument("--mode", dest='mode', nargs='?', default="both", help="Choose between mkdir, launch and "
-                                                                             "both (by default) modes ")
+                                                                               "both (by default) modes")
     parser.add_argument("--cores", dest='cores', nargs='?', default='8', type=int, help="Number of threads [8]")
     parser.add_argument("--radius", dest='radius', nargs='?', default='5', type=float, help="Shell radius [5]")
 
@@ -142,7 +141,16 @@ if __name__ == "__main__":
         for direct in filenames:
             if "dfpase_" in direct[0]:
                 for d in direct[1]:
-                    dirlist.append(f"{direct[0]}/{d}/")
+                    dstring = d[:-2] + d[-1:]
+                    search_str = "struct_" + dstring + "_start_lig_fix_0001_low.pdb"
+                    path = f"{direct[0]}/{d}/"
+                    filepath = path + search_str
+                    if Path(filepath).exists():
+                        pass
+                    else:
+                        dirlist.append(path)
+        dirlist = list(set(dirlist))
+        print(len(dirlist))
         with Pool(processes=cores) as pool:
             pool.map(start_backrub, dirlist)
     elif mode == "both":
