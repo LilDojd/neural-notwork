@@ -3,10 +3,11 @@
 """Insert packed residues of aligned mutant into initial PDB"""
 import argparse
 import glob
+import os
 import re
-from pathlib import Path
+import shutil
+import subprocess
 
-from biopandas.pdb import PandasPdb
 from prody import *
 
 
@@ -43,29 +44,62 @@ def insert_shell(initial, res_file, radii, out):
     :type res_file: File returned by file_dir
     """
 
-    initial_pdb = PandasPdb().read_pdb(initial).df['ATOM']
+    os.mkdir(out)
+    with open(initial) as protf:
+        initial_pdb = parsePDBStream(protf, biomol=False)
 
+    itered = []
     for item in res_file:
         resi = item[0]
         filename = item[1]
-        prody_struct = parsePDB(filename)
-        sel_string = f"calpha and within {radii} of resnum {resi}"
+        outstring = out + f"{filename.split('_')[2]}"
+        prody_struct, head = parsePDB(filename, header=True, biomol=False)
+        sel_string = f"protein and calpha and within {radii} of resnum {resi}"
         shell_ca = prody_struct.select(sel_string)
+        # os.remove('tempshell.pdb')
         shell_resi_list = shell_ca.getResnums().tolist()
-        mut_pdb = PandasPdb().read_pdb(filename)
-        shell_df = mut_pdb.df['ATOM'][mut_pdb.df['ATOM']['residue_number'].isin(shell_resi_list)]
-        new_mut = initial_pdb.copy(deep=True)
-        new_mut = new_mut[~new_mut['residue_number'].isin(shell_resi_list)]
-        new_mut.append(shell_df, ignore_index=True).sort_values('residue_number', inplace=True)
-        print(f"...Iterating over resi {resi}")
-        new_mut.drop(labels="atom_number", axis=1)
-        arange = np.arange(start=1, stop=new_mut.shape[0] + 1)
-        new_mut["atom_number"] = arange
-        out = out + f"shell_modified_{resi}.pdb"
-        mut_pdb.to_pdb(path=f"/{out}",
-                       records=None,
-                       gz=False,
-                       append_newline=True)
+        # Select residues within radii of residue
+        residues = " ".join([str(i) for i in shell_resi_list])
+        shell = prody_struct.select(f'resnum {residues}')
+        writePDB('tempshell.pdb', shell)
+        # temp_shell = parsePDB('tempshell.pdb', biomol=False)
+        if resi not in itered:
+            print(f"...Iterating over resi {resi}")
+            itered.append(resi)
+        else:
+            pass
+        # ensemble = PDBEnsemble(outstring)
+        # ensemble.setAtoms(initial_pdb)
+        # ensemble.setCoords(initial_pdb.getCoords())
+        # startLogfile("logimpose" + outstring + ".prd")
+        # ensemble.addCoordset(temp_shell)
+        atoms_init = initial_pdb.select(f"not (resnum {residues})")
+        writePDB('tempinit.pdb', atoms_init)
+        merge = ["pdb_merge", "tempinit.pdb", "tempshell.pdb"]
+        sort = ["pdb_sort"]
+        reatom = ["pdb_reatom"]
+        tidy = ["pdb_tidy"]
+        try:
+            wfile = open(f"{outstring}.pdb", "w")
+            process_merge = subprocess.Popen(merge, stdout=subprocess.PIPE, shell=False)
+            process_sort = subprocess.Popen(sort, stdin=process_merge.stdout, stdout=subprocess.PIPE, shell=False)
+            process_merge.wait()
+            process_merge.stdout.close()
+            process_reatom = subprocess.Popen(reatom, stdin=process_sort.stdout, stdout=subprocess.PIPE, shell=False)
+            process_sort.wait()
+            process_sort.stdout.close()
+            process_tidy = subprocess.Popen(tidy, stdin=process_reatom.stdout, stdout=wfile, shell=False)
+            process_reatom.wait()
+            process_reatom.stdout.close()
+            process_tidy.wait()
+            wfile.close()
+        except NotADirectoryError:
+            print("Please, install pdb-tools from https://github.com/JoaoRodrigues/pdb-tools/")
+            break
+        subprocess.call(["sed", "-i", "1,2d", f"{outstring}.pdb"])
+        os.remove('tempshell.pdb')
+        os.remove('tempinit.pdb')
+        shutil.move(f"./{outstring}.pdb", f"./{out}/")
 
     pass
 
@@ -82,7 +116,5 @@ if __name__ == "__main__":
     radius = args.radius
     files = args.files
     outname = args.output
-    outdir = Path(outname)
-    outdir.mkdir(exist_ok=True)
     res_file_dict = file_dir(pdb, files)
     insert_shell(pdb, res_file_dict, radius, outname)

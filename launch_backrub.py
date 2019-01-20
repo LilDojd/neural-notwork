@@ -100,10 +100,12 @@ def prepare_dirs(resindex, tofold):
 
 
 def start_backrub(directory):
-    subprocess.call(
-        f"(cd {directory}; bash ros.bash {pdb} dfpase.resfile 1>> "
-        f"rosetta.log;echo Backrub finished for {directory};cd ../../)",
-        shell=True)
+    os.chdir(directory)  # Not sure about the behaviour, thus time.sleep
+    time.sleep(0.1)
+    subprocess.call(f"bash ros.bash {pdb} dfpase.resfile 1>> rosetta.log", shell=True)
+    subprocess.call(["echo", f"Backrub finished for {directory}"])
+    os.chdir("../../")
+    time.sleep(0.1)
     pass
 
 
@@ -120,6 +122,10 @@ if __name__ == "__main__":
     res_list = extract_res_list(args.reslist)
     cores = args.cores
     pdb = args.pdb
+    if ";" in pdb:
+        print("No shell attacks allowed")
+        # Force exit
+        sys.exit(1)
     radius = args.radius
     modes = ["launch", "mkdir", "both"]
     mode = args.mode
