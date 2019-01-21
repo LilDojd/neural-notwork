@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
-"""Generate backrub resfiles for each mutation of each residue in a set"""
+"""Prepare subdirectory tree and launch rosetta backrub for given pdb and carriage-return delimited residue numbers
+file"""
+
 import argparse
 import os
 import subprocess
@@ -47,6 +49,13 @@ class NoStdStreams(object):
 
 
 def make_resfile(residue, aminoacid, tofold, command="NATRO"):
+    """
+    Writes .resfile for rosetta backrub
+    :param residue:
+    :param aminoacid:
+    :param tofold:
+    :param command:
+    """
     extra = ""
     for i in tofold:
         a = str(i)
@@ -63,6 +72,11 @@ def make_resfile(residue, aminoacid, tofold, command="NATRO"):
 
 
 def write_rosbash(residue, am):
+    """
+    Writes bash script for launching mutagenesis
+    :param residue:
+    :param am:
+    """
     strtoadd: str = str(residue) + am
     with open("ros.bash", "w") as outf:
         outf.write("#!/bin/bash\n"
@@ -82,6 +96,11 @@ def write_rosbash(residue, am):
 
 
 def prepare_dirs(resindex, tofold):
+    """
+    Prepares directory structure
+    :param resindex:
+    :param tofold:
+    """
     output_dir = Path(".") / f"dfpase_{resindex}"
     output_dir.mkdir(exist_ok=True)
     os.chdir(output_dir)

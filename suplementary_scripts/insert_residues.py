@@ -13,7 +13,7 @@ from prody import *
 
 def re_resi_finder(filename):
     """
-    Used further to deduce the resi of mutated residue by filename
+    Used further to deduce the residue index of mutated residue by filename
     :type filename: str
     """
     index = re.findall(r"\d+", filename)
@@ -52,16 +52,19 @@ def insert_shell(initial, res_file, radii, out):
     for item in res_file:
         resi = item[0]
         filename = item[1]
-        outstring = out + f"{filename.split('_')[2]}"
+        outstring = out + f"{filename.split('_')[2]}"  # Works only for names with structure first_second_11A_rest
+        # To be reassessed
         prody_struct, head = parsePDB(filename, header=True, biomol=False)
         sel_string = f"protein and calpha and within {radii} of resnum {resi}"
+        # Select all C-alpha atoms within radius from reside
         shell_ca = prody_struct.select(sel_string)
         # os.remove('tempshell.pdb')
         shell_resi_list = shell_ca.getResnums().tolist()
-        # Select residues within radii of residue
+        # Select residues within radius of residue
         residues = " ".join([str(i) for i in shell_resi_list])
         shell = prody_struct.select(f'resnum {residues}')
         writePDB('tempshell.pdb', shell)
+        # Write temporary pdb files for further merging
         # temp_shell = parsePDB('tempshell.pdb', biomol=False)
         if resi not in itered:
             print(f"...Iterating over resi {resi}")
@@ -75,10 +78,12 @@ def insert_shell(initial, res_file, radii, out):
         # ensemble.addCoordset(temp_shell)
         atoms_init = initial_pdb.select(f"not (resnum {residues})")
         writePDB('tempinit.pdb', atoms_init)
+        # Read more about external tools used at https://github.com/haddocking/pdb-tools
         merge = ["pdb_merge", "tempinit.pdb", "tempshell.pdb"]
         sort = ["pdb_sort"]
         reatom = ["pdb_reatom"]
         tidy = ["pdb_tidy"]
+        # Launch external processes
         try:
             wfile = open(f"{outstring}.pdb", "w")
             process_merge = subprocess.Popen(merge, stdout=subprocess.PIPE, shell=False)
