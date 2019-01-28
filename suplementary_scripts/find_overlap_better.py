@@ -10,8 +10,8 @@ from typing import Dict, List, Any
 import numpy as np
 import pandas as pd
 import scipy.spatial
-
-from suplementary_scripts.parsegro import gro_parser, get_coordinates, write_gro, renumber
+# noinspection PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences,PyUnresolvedReferences
+from parsegro import gro_parser, get_coordinates, write_gro, renumber
 
 """ VdW values are hardcoded
     ???  H     0.12
@@ -40,11 +40,25 @@ COL_NAMES = ["C", "N", "O", "S"]
 INDEX_NAMES = ["CL", "NA", "OW"]
 VDW_DF = pd.DataFrame(columns=COL_NAMES, index=INDEX_NAMES)
 
+
+class COLOR:
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
+
+
 for x, y in itertools.product(INDEX_NAMES, COL_NAMES):
     rad_sum = round(VAN_DER_WAALS[x] + VAN_DER_WAALS[y], 3)
     VDW_DF.loc[x, y] = rad_sum
 
-print(f"VdW radii used for this scrip:'\n{VDW_DF}\n")
+print(f"{COLOR.BOLD}VdW radii used for this script:{COLOR.END}\n{VDW_DF}\n")
 
 
 def distance(point_a, point_b):  # Used to calculate distance between 2 points
@@ -105,11 +119,10 @@ def subdf_dict(initial_df, atomlist):
     return df_dict
 
 
-def build_trees(dictionary, compact_nodes=True):
+def build_trees(dictionary):
     """
     Given dictionary containing labeled subdataframes,
     return dict of cKDtrees of this sdfs
-    :type compact_nodes: bool
     :type dictionary: dict
     """
     ckd_dict = {}
@@ -141,7 +154,7 @@ if __name__ == "__main__":
     parser.add_argument("solvf", help="Path to topology file containing dissolved protein")
     parser.add_argument("mutantf", help="Path to topology file containing mutant protein")
     parser.add_argument("-o", "--outputname", dest="output", nargs="?", help="Name of output file")
-    parser.add_argument("-s", "--scale", dest="scale", nargs="?", default=1, type=float, help="VdW scaler, 1 for default")
+    parser.add_argument("-s", "--scale", dest="scale", nargs="?", default=1, type=float, help="VdW scaler [1]")
 
     args = parser.parse_args()
     if args.output is None:
@@ -151,20 +164,23 @@ if __name__ == "__main__":
 
     scl = args.scale
     # Work with input files
+    sol_init_df = gro_parser(args.solvf).atoms
     sol_parsed = gro_parser(args.solvf, include_protein=False)
     mut_parsed = gro_parser(args.mutantf, include_solvent=False)
     # Create large dataframe containing all parsed atoms
     sol_df: pd.DataFrame = sol_parsed.atoms
     mut_df: pd.DataFrame = mut_parsed.atoms
     big_df: pd.DataFrame = pd.concat([mut_df, sol_df], axis=0, join="outer")
-    print(f"Shape of DataFrame: {big_df.shape}.\nConsists of smaller {mut_df.shape} and {sol_df.shape} DFs\n")
+    print(f"{COLOR.BOLD}Shape of DataFrame:{COLOR.END} {big_df.shape}.\n{COLOR.BOLD}"
+          f"Consists of smaller{COLOR.END} {mut_df.shape} {COLOR.BOLD}and{COLOR.END}"
+          f" {sol_df.shape} {COLOR.BOLD}DFs{COLOR.END}\n")
 
     #  And for each channel we create dictionary
     proteindf_dict = subdf_dict(mut_df, COL_NAMES)
     soldf_dict = subdf_dict(sol_df, INDEX_NAMES)
     #  Build cKDTree for each subDF
-    protein_trees = build_trees(proteindf_dict, compact_nodes=True)
-    sol_trees = build_trees(soldf_dict, compact_nodes=True)
+    protein_trees = build_trees(proteindf_dict)
+    sol_trees = build_trees(soldf_dict)
     print(f"cKDTrees built for {len(sol_trees)} solvent and {len(protein_trees)} protein channels\n")
 
     # Find juxtaposed atoms from 2 sets. This part of code is barely readable as i didn't put much thought to it but
@@ -174,7 +190,7 @@ if __name__ == "__main__":
     for i, j in itertools.product(protein_trees, sol_trees):
         tree1: scipy.spatial.cKDTree = protein_trees[i][0]
         tree2: scipy.spatial.cKDTree = sol_trees[j][0]
-        rad_range = scl*VDW_DF.loc[j, i]
+        rad_range = scl * VDW_DF.loc[j, i]
         list_for_each = tree1.query_ball_tree(tree2, rad_range)
         list_for_each = [x for x in list_for_each if x != []]
         # Get rid of empty lists
@@ -188,10 +204,6 @@ if __name__ == "__main__":
     ow_cut = to_exclude["OW"]
     na_cut = to_exclude["NA"]
     cl_cut = to_exclude["CL"]
-    print(f"Found {len(ow_cut)} overlapping Oxygen atoms\nFound {len(na_cut)} overlapping Sodium atoms\nFound "
-          f"{len(cl_cut)} "
-          f"overlapping Chlorine atoms\n")
-    print("Deleting...\n")
 
     # Data frames of each solvent atom
     cl_df = soldf_dict["CL"][0]
@@ -202,6 +214,19 @@ if __name__ == "__main__":
     cl_cut_coord = sol_trees["CL"][0].data[cl_cut]
     na_cut_coord = sol_trees["NA"][0].data[na_cut]
     ow_cut_coord = sol_trees["OW"][0].data[ow_cut]
+
+    ow_del = find_match(ow_cut_coord, sol_init_df)
+    cl_del = find_match(cl_cut_coord, sol_init_df)
+    na_del = find_match(na_cut_coord, sol_init_df)
+
+    cl_del_list = ', '.join([f"{COLOR.CYAN}{str(i)}{COLOR.END}" for i in cl_del])
+    na_del_list = ', '.join([f"{COLOR.CYAN}{str(i)}{COLOR.END}" for i in na_del])
+
+    print(f"Found {len(ow_cut)} overlapping Oxygen atoms\nFound {len(na_cut)} overlapping Sodium atoms: "
+          f"{na_del_list}\nFound "
+          f"{len(cl_cut)} "
+          f"overlapping Chlorine atoms: {cl_del_list}\n")
+    print("Deleting molecules...\n")
 
     del_resid = []
     del_resid += [i for i in find_match(ow_cut_coord, sol_df)]
@@ -222,4 +247,4 @@ if __name__ == "__main__":
     with open(output, "w") as outf:
         for i in write_gro(title, new_atoms_dict, box):
             outf.write(i)
-    print(f"Output saved in {output}\n")
+    print(f"Output saved in {COLOR.DARKCYAN}{output}{COLOR.END}\n")
