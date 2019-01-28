@@ -219,13 +219,26 @@ if __name__ == "__main__":
     cl_del = find_match(cl_cut_coord, sol_init_df)
     na_del = find_match(na_cut_coord, sol_init_df)
 
-    cl_del_list = ', '.join([f"{COLOR.CYAN}{str(i)}{COLOR.END}" for i in cl_del])
-    na_del_list = ', '.join([f"{COLOR.CYAN}{str(i)}{COLOR.END}" for i in na_del])
+    ow_del_l = [f"{str(i)}" for i in ow_del]
 
-    print(f"Found {len(ow_cut)} overlapping Oxygen atoms\nFound {len(na_cut)} overlapping Sodium atoms: "
-          f"{na_del_list}\nFound "
+    ow_del_list = ', '.join(ow_del_l[:3]) + " ... " + ', '.join(ow_del_l[-3:])
+    cl_del_list = ', '.join([f"{str(i)}" for i in cl_del])
+    na_del_list = ', '.join([f"{str(i)}" for i in na_del])
+
+    print(f"Found {len(ow_cut)} overlapping Oxygen atoms: {COLOR.CYAN}{ow_del_list}{COLOR.END}"
+          f"\nFound {len(na_cut)} overlapping Sodium atoms: "
+          f"{COLOR.CYAN}{na_del_list}{COLOR.END}\nFound "
           f"{len(cl_cut)} "
-          f"overlapping Chlorine atoms: {cl_del_list}\n")
+          f"overlapping Chlorine atoms: {COLOR.CYAN}{cl_del_list}{COLOR.END}\n")
+    resout = output.strip(".gro") + ".resi"
+    with open(resout, "w+") as wfile:
+        wfile.write(f"Removed {len(ow_cut)} water molecules:\n")
+        wfile.write(', '.join(ow_del_l))
+        wfile.write(f"\nRemoved {len(na_cut)} sodium atoms:\n")
+        wfile.write(na_del_list)
+        wfile.write(f"\nRemoved {len(cl_cut)} chlorine atoms:\n")
+        wfile.write(cl_del_list)
+    print(f"Resindeces of deleted SOL molecules saved in {COLOR.CYAN}{resout}{COLOR.END}\n")
     print("Deleting molecules...\n")
 
     del_resid = []
