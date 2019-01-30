@@ -1,0 +1,54 @@
+usage: run.py [-h] --high-res-input-dir HIGH_RES_FEATURES_INPUT_DIR
+              [--test-set-fraction TEST_SET_FRACTION]
+              [--validation-set-size VALIDATION_SET_SIZE]
+              [--num-passes NUM_PASSES] [--max-batch-size MAX_BATCH_SIZE]
+              [--subbatch-max-size SUBBATCH_MAX_SIZE]
+              [--model-checkpoint-path MODEL_CHECKPOINT_PATH]
+              [--max-to-keep MAX_TO_KEEP] [--read-from-checkpoint]
+              [--mode {train,test}] [--model-output-type {aa,ss}]
+              [--dropout-keep-prob DROPOUT_KEEP_PROB]
+              [--learning-rate LEARNING_RATE] [--reg-fact REG_FACT]
+              [--output-interval OUTPUT_INTERVAL] --model
+              {CubedSphereModel,CubedSphereBandedModel,CubedSphereBandedDisjointModel,CubedSphereDenseModel,SphericalModel,CartesianHighresModel}
+              [--step STEP]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --high-res-input-dir HIGH_RES_FEATURES_INPUT_DIR
+                        Location of input files containing high-res features
+  --test-set-fraction TEST_SET_FRACTION
+                        Fraction of data set aside for testing (default: 0.25)
+  --validation-set-size VALIDATION_SET_SIZE
+                        Size of validation set (taken out of training set)
+                        (default: 10)
+  --num-passes NUM_PASSES
+                        Number of passes over the data during traning
+                        (default: 10)
+  --max-batch-size MAX_BATCH_SIZE
+                        Maximum batch size used during training (default:
+                        1000)
+  --subbatch-max-size SUBBATCH_MAX_SIZE
+                        Maximum batch size used for gradient calculation
+                        (default: 25)
+  --model-checkpoint-path MODEL_CHECKPOINT_PATH
+                        Where to dump/read model checkpoints (default: models)
+  --max-to-keep MAX_TO_KEEP
+                        Maximal number of checkpoints to keep (default: 2)
+  --read-from-checkpoint
+                        Whether to read model from checkpoint
+  --mode {train,test}   Mode of operation (default: train)
+  --model-output-type {aa,ss}
+                        Whether the model should output secondary structure or
+                        amino acid labels (default: ss)
+  --dropout-keep-prob DROPOUT_KEEP_PROB
+                        Probability for leaving out node in dropout (default:
+                        0.5)
+  --learning-rate LEARNING_RATE
+                        Learing rate for Adam (default: 0.001)
+  --reg-fact REG_FACT   Regularisation factor (default: 0.001)
+  --output-interval OUTPUT_INTERVAL
+                        The output interval for train and validation error
+                        (default: None)
+  --model {CubedSphereModel,CubedSphereBandedModel,CubedSphereBandedDisjointModel,CubedSphereDenseModel,SphericalModel,CartesianHighresModel}
+                        Which model definition to use (default: None)
+  --step STEP           Which checkpoint file to use (default: None)

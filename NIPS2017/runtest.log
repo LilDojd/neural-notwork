@@ -1,0 +1,31 @@
+/Users/georgiyandreev/anaconda3/lib/python3.6/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+# Options
+dropout_keep_prob = 0.5
+high_res_features_input_dir = /Users/georgiyandreev/Documents/FBB/Lab/descriptor/cath_datasets/
+learning_rate = 0.001
+max_batch_size = 1000
+max_to_keep = 2
+mode = train
+model = CubedSphereModel
+model_checkpoint_path = models
+model_output_type = ss
+num_passes = 10
+output_interval = None
+read_from_checkpoint = False
+reg_fact = 0.001
+step = None
+subbatch_max_size = 25
+test_set_fraction = 0.25
+validation_set_size = 10
+# Data:
+Total size:  0
+Training size:  -10
+Validation size:  10
+Test size:  0
+Traceback (most recent call last):
+  File "run.py", line 109, in <module>
+    high_res_grid_size = batch_factory.next(1, increment_counter=False)[0]["high_res"].shape
+  File "/Users/georgiyandreev/Documents/FBB/Lab/descriptor/NIPS2017/Deepfold/batch_factory.py", line 326, in next
+    index = (self.feature_index+i) % len(self.features_expanded)
+ZeroDivisionError: integer division or modulo by zero
