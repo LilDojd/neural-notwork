@@ -109,7 +109,7 @@ def define_coordinate_system(pos_N, pos_CA, pos_C, z_direction):
         # Use sidechain direction as z-direction
         rot_matrix = np.array([e3,e1,e2])
     else:
-        raise "Unknown z-direction "
+        raise Exception("Unknown z-direction ")
     
     return rot_matrix
 

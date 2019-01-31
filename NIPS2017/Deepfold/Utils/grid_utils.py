@@ -13,7 +13,7 @@
 # limitations under the License.
 # =============================================================================
 
-'''Utility code for constructing spherical and cubed sphere grids'''
+"""Utility code for constructing spherical and cubed sphere grids"""
 
 import numpy as np
 import enum
