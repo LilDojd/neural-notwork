@@ -115,7 +115,6 @@ def avg_pool_spherical(value, ksize, strides, padding, name=None):
                             padding='VALID')
 
 
-
 def conv_spherical_cubed_sphere(input, filter, strides, padding, name=None):
     r"""Computes a spherical convolution (actually a cross-correlation) given 6-D
     `input` and `filter` tensors, using spherical coordinates.
@@ -150,7 +149,7 @@ def conv_spherical_cubed_sphere(input, filter, strides, padding, name=None):
 
     filter_size_r, filter_size_xi, filter_size_eta = filter.shape.as_list()[:3]
 
-    radial_padding_size = (0,0)
+    radial_padding_size = (0, 0)
     if padding == "SAME":
         radial_padding_size = (filter_size_r // 2, filter_size_r // 2)
 
@@ -195,7 +194,7 @@ def avg_pool_spherical_cubed_sphere(value, ksize, strides, padding, name=None):
 
     ksize_r, ksize_xi, ksize_eta = ksize[1:4]
 
-    radial_padding_size = (0,0)
+    radial_padding_size = (0, 0)
     if padding == "SAME":
         radial_padding_size = (ksize_r // 2, ksize_r // 2)
 
