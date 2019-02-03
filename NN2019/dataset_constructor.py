@@ -13,8 +13,6 @@ import pandas as pd
 warnings.filterwarnings("ignore", message="Used element '.' for Atom")
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--cath-filename",
-                    help="CATH domain list input file")
 parser.add_argument("--pdb-dir",
                     help="PDB directory")
 parser.add_argument("--n-splits", default=10, type=int,
@@ -23,25 +21,20 @@ parser.add_argument("--atom-selector-regexp", default="CA",
                     help="Atom selector (default: %(default)s)")
 parser.add_argument("--max-distance", default=50.0,
                     help="Maximum distance from atom to center of mass (default: %(default)s)")
-parser.add_argument("--extract-at-level", default="arch",
-                    help="Which CATH-level to use, i.e. class, arch, topo, or superfam (default: %(default)s)")
-parser.add_argument("--sub-category-level", default="superfam",
-                    help="Which CATH-level to use, i.e. class, arch, topo, or superfam (default: %(default)s)")
 parser.add_argument("--min-size", default=500, type=int,
                     help="Minimum number of elements in category in order for it to be included (default: %(default)s)")
 parser.add_argument("--min-resolution", default=3.5, type=float,
-                    help="The minimum resolution for entries to be included (note that the resolution grows when this number drops) (default: %(default)s)")
+                    help="The minimum resolution for entries to be included (note that "
+                         "the resolution grows when this number drops) (default: %(default)s)")
 parser.add_argument("--print-group-sizes-only", default=False, action="store_true",
-                    help="Just print out the unfiltered group sizes - useful for deciding on a min-size value (default: %(default)s)")
+                    help="Just print out the unfiltered group sizes - useful for deciding "
+                         "on a min-size value (default: %(default)s)")
 
 args = parser.parse_args()
 
 print("# Arguments")
 for key, value in sorted(vars(args).items()):
     print(key, "=", value)
-
-sub_category_col_range = list(
-    range(1, levels.index(args.sub_category_level) + 1 + 1))  # add one offset and one because end is excluded
 
 # Read data into pandas dataframe
 data = pd.read_csv(args.cath_filename, sep='\s+', header=None, usecols=[0, 1, 2, 3, 4, 11], comment="#")
