@@ -248,7 +248,7 @@ class BatchFactory:
                 if pdb_id != os.path.basename(grid_feature_filename)[0:5]:
                     raise ValueError(
                         "%s != %s: Mismatch in protein and residue feature filenames (one of them is probably missing)" % (
-                        pdb_id, os.path.basename(grid_feature_filename)[0:5]))
+                            pdb_id, os.path.basename(grid_feature_filename)[0:5]))
 
             # Create feature data
             if grid_feature_filename is not None:

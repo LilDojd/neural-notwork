@@ -1,3 +1,5 @@
+# Cannot be completed until MD output format is known
+
 import argparse
 import glob
 import math
