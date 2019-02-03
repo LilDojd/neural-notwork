@@ -45,6 +45,8 @@ pdb_ids = [os.path.basename(name) for name in pdb_filenames]
 data = data[data[0].isin(pdb_ids)]
 data = data.reset_index(drop=True)
 
+# Remove CATH, implement raw read
+
 print("Processing PDB files for distance to CM")
 
 # Create Bio.PDB parser object
