@@ -2,6 +2,7 @@
 import glob
 import io
 import os
+import sys
 import tempfile
 
 import Bio.PDB
@@ -9,6 +10,8 @@ import Bio.PDB.Polypeptide
 import Bio.SeqIO
 # import numpy as np
 import pdbfixer
+
+sys.path.append('..')
 
 if 'TRN' not in pdbfixer.pdbfixer.substitutions:
     pdbfixer.pdbfixer.substitutions['TRN'] = 'TRP'

@@ -6,9 +6,12 @@ https://www.researchgate.net/publication/224017908_The_Evolution_of_Dynamical_Co
 /figures?lo=1"""
 
 import enum
+import sys
 
 import Bio.PDB
 import numpy as np
+
+sys.path.append('..')
 
 # noinspection PyArgumentList
 CoordinateSystem = enum.Enum("CoordinateSystem", {"spherical": 1, "cubed_sphere": 2, "cartesian": 3})
