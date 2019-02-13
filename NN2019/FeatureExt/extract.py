@@ -28,7 +28,6 @@ def extract_mass_charge(pdb_filename):
     structure = pdb_parser.get_structure(pdb_id, pdb_filename)
 
     first_model = structure.get_list()[0]
-    ppb = Bio.PDB.PPBuilder()  # Unused
     sequence = []
     aa_one_hot = []
     chain_ids = []
@@ -53,11 +52,8 @@ def extract_mass_charge(pdb_filename):
             except KeyError:
                 aa_index = 20
             aa_indices.append(aa_index)
-        print(len(aa_indices))
-        print(aa_indices)
         # Convert to one-hot encoding
         aa_one_hot_chain = np.zeros((len(aa_indices), 21))
-        aa_one_hot_chain[np.arange(len(aa_indices)), aa_indices] = 1
         aa_one_hot_chain[np.arange(len(aa_indices)), aa_indices] = 1
         aa_one_hot.append(aa_one_hot_chain)
 
@@ -90,7 +86,7 @@ def extract_mass_charge(pdb_filename):
     # Create structured array for features
     features = np.empty(shape=(len(positions), 1), dtype=[('mass', np.float32),
                                                           ('charge', np.float32),
-                                                          ('atom', 'a5'),
+                                                          ('name', 'a5'),
                                                           ('res_index', int),
                                                           ('x', np.float32), ('y', np.float32), ('z', np.float32)])
     # Iterate over chain,residue,atoms and extract features
@@ -103,7 +99,7 @@ def extract_mass_charge(pdb_filename):
                 position = list(positions[index].value_in_unit(simtk.unit.angstrom))
                 mass = atom.element.mass.value_in_unit(simtk.unit.dalton)
                 charge = nonbonded_force.getParticleParameters(index)[0].value_in_unit(simtk.unit.elementary_charge)
-                features[index] = tuple([mass, charge, atom.element.symbol, residue.index] + position)
+                features[index] = tuple([mass, charge, atom.name, residue.index] + position)
 
                 residue_index_local = residue.index - chain_start_index
                 assert (residue.name == sequence[i][residue_index_local])
@@ -123,10 +119,10 @@ def embed_in_grid(features, pdb_id, output_dir,
                   coordinate_system,
                   z_direction,
                   include_center):
-    '''Embed masses and charge information in a spherical grid - specific for each residue
+    """Embed masses and charge information in a spherical grid - specific for each residue
        For space-reasons, only the indices into these grids are stored, and a selector
        specifying which atoms are relevant (i.e. within range) for the current residue.
-    '''
+    """
 
     # Extract coordinates as normal numpy array
     global indices, r
@@ -290,7 +286,7 @@ def embed_in_grid(features, pdb_id, output_dir,
 
 def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_angstrom,
                                add_seq_distance_feature, output_dir, coordinate_system,
-                               z_direction, include_center, dssp_executable):
+                               z_direction, include_center):
     """
     Creates both atom-level and residue-level (grid) features from a pdb file
     """
@@ -298,10 +294,8 @@ def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_an
     print(pdb_filename)
 
     # Extract basic atom features (mass, charge, etc)
-    pdb_id, features, masses_array, charges_array, \
-    aa_one_hot, ss_one_hot, residue_index_array, \
-    chain_boundary_indices, chain_ids = extract_mass_charge(pdb_filename,
-                                                            dssp_executable)
+    [pdb_id, features, masses_array, charges_array, aa_one_hot, residue_index_array, chain_boundary_indices,
+     chain_ids] = extract_mass_charge(pdb_filename)
 
     # Save protein level features
     if not os.path.exists(output_dir):
@@ -314,7 +308,6 @@ def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_an
                             "masses", "charges"],
                         chain_boundary_indices=chain_boundary_indices,
                         chain_ids=chain_ids,
-                        ss_one_hot=ss_one_hot,
                         aa_one_hot=aa_one_hot,
                         coordinate_system=np.array(coordinate_system.value, dtype=np.int32),
                         z_direction=np.array(z_direction.value, dtype=np.int32),
@@ -335,7 +328,7 @@ def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_an
 
 def fetch_and_extract(line, max_radius, n_features, bins_per_angstrom, add_seq_distance_feature,
                       reduce_executable, output_dir, pdb_output_dir, coordinate_system, z_direction,
-                      include_center, dssp_executable):
+                      include_center):
     """
     extract_atomistic_features wrapper that fetches PDB files first
     """
@@ -346,7 +339,7 @@ def fetch_and_extract(line, max_radius, n_features, bins_per_angstrom, add_seq_d
     # Check that entry has expected format
     entry = line.split()[0]
     if len(entry) != 5:
-        print("skipping: %s" % (entry))
+        print("skipping: %s" % entry)
         return
 
     # Extract PDBID, ChainID and URL from entry
@@ -357,14 +350,14 @@ def fetch_and_extract(line, max_radius, n_features, bins_per_angstrom, add_seq_d
     # Parse structures and call extract_atomistic_features
     try:
         structure = parse_pdb(urllib.request.urlopen(url), pdb_id, chain_id, reduce_executable)
-        print("%s OK" % (entry))
+        print("%s OK" % entry)
         io = Bio.PDB.PDBIO()
         io.set_structure(structure)
         pdb_filename = os.path.join(pdb_output_dir, entry + '.pdb')
         io.save(pdb_filename)
 
         extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_angstrom, add_seq_distance_feature,
-                                   output_dir, coordinate_system, z_direction, include_center, dssp_executable)
+                                   output_dir, coordinate_system, z_direction, include_center)
     except Exception as e:
         print("%s Failed: %s" % (entry, e))
         pass
