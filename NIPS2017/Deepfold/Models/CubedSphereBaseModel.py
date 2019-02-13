@@ -45,7 +45,7 @@ class CubedSphereBaseModel(BaseModel):
                                                filter=W,
                                                strides=[1, stride_r, stride_xi, stride_eta, 1],
                                                padding=padding,
-                                               name="cubed_sphere_conv%d" % (index))
+                                               name="cubed_sphere_conv%d" % index)
 
         output = tf.nn.bias_add(conv, b)
 
