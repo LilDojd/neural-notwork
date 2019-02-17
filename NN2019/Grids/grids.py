@@ -60,7 +60,7 @@ def get_cartesian_grid_shape(max_radius, n_features, bins_per_angstrom):
 
 
 def create_cartesian_grid(max_radius, n_features, bins_per_angstrom):
-    """Creates cubed sphere grid"""
+    """Creates cartesian grid"""
 
     grid_matrix = np.zeros(shape=get_cartesian_grid_shape(max_radius, n_features, bins_per_angstrom))
 
@@ -88,9 +88,10 @@ def define_coordinate_system(pos_N, pos_CA, pos_C, z_direction):
     pos_N_res = pos_N - pos_CA
     axis = pos_CA - pos_C
     # Calculate left rotational matrix that rotates 120 degr around axis vector
-    pos_CB = np.dot(Bio.PDB.rotaxis((120. / 180.) * np.pi, Bio.PDB.Vector(axis)), pos_N_res)
+    pos_CB = np.dot(Bio.PDB.rotaxis((120. / 180.) * np.pi, Bio.PDB.vectors.Vector(axis[0, :])), pos_N_res.T)
     e2 = pos_CB
     e2 /= np.linalg.norm(e2)
+    e2 = e2.T
     e3 = np.cross(e1, e2)
 
     # N-C and e2 are not perfectly perpendicular to one another. We adjust e2.

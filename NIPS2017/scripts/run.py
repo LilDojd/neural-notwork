@@ -20,7 +20,6 @@ if __name__ == '__main__':
     import numpy as np
     from Deepfold.Models import models
     from Deepfold.batch_factory import BatchFactory
-    from utils import str2bool
 
     import argparse
 
@@ -195,8 +194,8 @@ if __name__ == '__main__':
 
             print(Q_test, loss_test, ",".join([pdb_id for pdb_id in set(batch["pdb"])]))
 
-        # Print the overall scores
         Q_test = np.mean(all_identical)
+
         loss_test = np.mean(all_entropies) + regularization
 
         print("# Statistics for the whole dataset:")

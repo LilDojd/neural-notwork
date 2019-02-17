@@ -118,7 +118,7 @@ def embed_in_grid(features, pdb_id, output_dir,
                   bins_per_angstrom,
                   coordinate_system,
                   z_direction,
-                  include_center):
+                  include_center, smoothen=False):
     """Embed masses and charge information in a spherical grid - specific for each residue
        For space-reasons, only the indices into these grids are stored, and a selector
        specifying which atoms are relevant (i.e. within range) for the current residue.
@@ -126,25 +126,31 @@ def embed_in_grid(features, pdb_id, output_dir,
 
     # Extract coordinates as normal numpy array
     global indices, r
-    position_array = features[['x', 'y', 'z']].view(np.float32)
+    position_array = structured_to_unstructured(features[['x', 'y', 'z']], dtype=np.float32)
 
     # Retrieve residue indices as numpy int array
-    res_indices = features[['res_index']].view(int)
+    res_indices = structured_to_unstructured(features[['res_index']], dtype=int)
 
     selector_list = []
     indices_list = []
-    for residue_index in np.unique(features[['res_index']].view(int)):
+    for residue_index in np.unique(structured_to_unstructured(features[['res_index']], dtype=int)):
 
         # Extract origin
-        if (np.logical_and(res_indices == residue_index, features[['name']].view('a5') == b"N").any() and
-                np.logical_and(res_indices == residue_index, features[['name']].view('a5') == b"CA").any() and
-                np.logical_and(res_indices == residue_index, features[['name']].view('a5') == b"C").any()):
+        if (np.logical_and(res_indices == residue_index,
+                           structured_to_unstructured(features[['name']], dtype='a5') == b"N").any() and
+                np.logical_and(res_indices == residue_index,
+                               structured_to_unstructured(features[['name']], dtype='a5') == b"CA").any() and
+                np.logical_and(res_indices == residue_index,
+                               structured_to_unstructured(features[['name']], dtype='a5') == b"C").any()):
             CA_feature = features[
-                np.argmax(np.logical_and(res_indices == residue_index, features[['name']].view('a5') == b"CA"))]
+                np.argmax(np.logical_and(res_indices == residue_index,
+                                         structured_to_unstructured(features[['name']], dtype='a5') == b"CA"))]
             N_feature = features[
-                np.argmax(np.logical_and(res_indices == residue_index, features[['name']].view('a5') == b"N"))]
+                np.argmax(np.logical_and(res_indices == residue_index,
+                                         structured_to_unstructured(features[['name']], dtype='a5') == b"N"))]
             C_feature = features[
-                np.argmax(np.logical_and(res_indices == residue_index, features[['name']].view('a5') == b"C"))]
+                np.argmax(np.logical_and(res_indices == residue_index,
+                                         structured_to_unstructured(features[['name']], dtype='a5') == b"C"))]
         else:
             # Store None to maintain indices
             indices_list.append(None)
@@ -152,18 +158,20 @@ def embed_in_grid(features, pdb_id, output_dir,
             continue
 
         # Positions of N, CA and C atoms used to define local reference system
-        pos_CA = CA_feature[['x', 'y', 'z']].view(np.float32)
-        pos_N = N_feature[['x', 'y', 'z']].view(np.float32)
-        pos_C = C_feature[['x', 'y', 'z']].view(np.float32)
+        pos_CA = structured_to_unstructured(CA_feature[['x', 'y', 'z']], dtype=np.float32)
+        pos_N = structured_to_unstructured(N_feature[['x', 'y', 'z']], dtype=np.float32)
+        pos_C = structured_to_unstructured(C_feature[['x', 'y', 'z']], dtype=np.float32)
 
         # Define local coordinate system
         rot_matrix = grids.define_coordinate_system(pos_N, pos_CA, pos_C, z_direction)
 
         # Calculate coordinates relative to origin
         xyz = position_array - pos_CA
-
+        print(xyz.shape)
+        print(rot_matrix.shape)
         # Rotate to the local reference
-        xyz = np.dot(rot_matrix, xyz.T).T
+        xyz = np.tensordot(rot_matrix, xyz)
+        print(xyz.shape)
 
         if coordinate_system == grids.CoordinateSystem.spherical:
 
@@ -247,9 +255,12 @@ def embed_in_grid(features, pdb_id, output_dir,
                 for i in duplicate_indices:
                     print("\t", features[selector][i])
                 for i_index in range(len(duplicate_indices)):
-                    coord1 = features[selector][duplicate_indices[i_index]][['x', 'y', 'z']].view(np.float32)
+                    coord1 = structured_to_unstructured(features[selector][duplicate_indices[i_index]][['x', 'y', 'z']],
+                                                        dtype=np.float32)
                     for j_index in range(i_index + 1, len(duplicate_indices)):
-                        coord2 = features[selector][duplicate_indices[j_index]][['x', 'y', 'z']].view(np.float32)
+                        coord2 = structured_to_unstructured(features[selector][duplicate_indices[j_index]][['x', 'y',
+                                                                                                            'z']],
+                                                            dtype=np.float32)
                         print('\t\tdistance(%s,%s) = %s' % (coord1, coord2, np.linalg.norm(coord2 - coord1)))
                 print()
 
@@ -314,7 +325,8 @@ def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_an
                         max_radius=np.array(max_radius, dtype=np.float32),  # angstrom
                         n_features=np.array(n_features, dtype=np.int32),
                         bins_per_angstrom=np.array(bins_per_angstrom, dtype=np.float32),
-                        n_residues=np.array(len(np.unique(features[['res_index']].view(int))), dtype=np.int32))
+                        n_residues=np.array(
+                            len(np.unique(structured_to_unstructured(features[['res_index']], dtype=int)))))
 
     # Embed in a grid
     embed_in_grid(features, pdb_id, output_dir,

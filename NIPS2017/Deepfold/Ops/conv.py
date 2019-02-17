@@ -14,8 +14,9 @@
 # =============================================================================
 
 import tensorflow as tf
-from . import pad_cubed_sphere
 from Deepfold.Utils.pad_wrap import pad_wrap
+
+from . import pad_cubed_sphere
 
 
 def conv_spherical(input, filter, strides, padding, name=None):
@@ -72,7 +73,7 @@ def conv_spherical(input, filter, strides, padding, name=None):
                         name=name)
 
 
-def avg_pool_spherical(value, ksize, strides, padding, name=None):
+def avg_pool_spherical(value, ksize, strides, padding):
     r"""Performs average pooling of the input, using spherical coordinates.
 
     Args:
@@ -87,8 +88,6 @@ def avg_pool_spherical(value, ksize, strides, padding, name=None):
         padding: A `string` from: `"SAME", "VALID"`.
             The type of padding algorithm to use for the radial and polar dimensions.
             Note that the azimuthal dimension will always use periodic padding.
-        name: A name for the operation (optional).
-
     Returns:
         A `Tensor`. Has the same type as `input`.
     """
