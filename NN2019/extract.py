@@ -11,11 +11,12 @@ import simtk.openmm.app
 import simtk.unit
 from numpy.lib.recfunctions import structured_to_unstructured
 
-from NN2019.Grids import grids
-from NN2019.pdb_parse import parse_pdb
+from Grids import grids
+from pdb_parse import parse_pdb
 
 
-def extract_mass_charge(pdb_filename):
+# Add smoothing at this level
+def extract_mass_charge(pdb_filename, smoothen):
     """Extract protein-level features from pdb file"""
 
     pdb_id = os.path.basename(pdb_filename).split('.')[0]
@@ -84,6 +85,7 @@ def extract_mass_charge(pdb_filename):
             nonbonded_force = force
 
     # Create structured array for features
+    # Smoothen here, dont forget to change shape
     features = np.empty(shape=(len(positions), 1), dtype=[('mass', np.float32),
                                                           ('charge', np.float32),
                                                           ('name', 'a5'),
@@ -103,6 +105,9 @@ def extract_mass_charge(pdb_filename):
 
                 residue_index_local = residue.index - chain_start_index
                 assert (residue.name == sequence[i][residue_index_local])
+
+    if smoothen:
+        pass
 
     # Convert relevant entries to standard numpy arrays
     masses_array = structured_to_unstructured(features[['mass']], dtype=np.float32)
@@ -167,11 +172,11 @@ def embed_in_grid(features, pdb_id, output_dir,
 
         # Calculate coordinates relative to origin
         xyz = position_array - pos_CA
-        print(xyz.shape)
-        print(rot_matrix.shape)
+        xyz = xyz.reshape(xyz.shape[0], xyz.shape[2])
+        rot_matrix = rot_matrix.reshape(rot_matrix.shape[0], rot_matrix.shape[2])
+
         # Rotate to the local reference
-        xyz = np.tensordot(rot_matrix, xyz)
-        print(xyz.shape)
+        xyz = np.dot(rot_matrix, xyz.T).T
 
         if coordinate_system == grids.CoordinateSystem.spherical:
 
