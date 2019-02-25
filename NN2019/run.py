@@ -18,8 +18,8 @@ if __name__ == '__main__':
     import glob
     import os
     import numpy as np
-    from Deepfold.Models import models
-    from Deepfold.batch_factory import BatchFactory
+    from Models import models
+    from batch_factory import BatchFactory
 
     import argparse
 
@@ -109,7 +109,8 @@ if __name__ == '__main__':
         batch_factory.add_data_set("model_output",
                                    high_res_protein_feature_filenames[test_start:],
                                    key_filter=[options.model_output_type + "_one_hot"])
-
+    else:
+        raise KeyError("Invalid mode")
     high_res_grid_size = batch_factory.next(1, increment_counter=False)[0]["high_res"].shape
     output_size = batch_factory.next(1, increment_counter=False)[0]["model_output"].shape[1]
 
@@ -151,6 +152,7 @@ if __name__ == '__main__':
         model.restore(options.model_checkpoint_path, step=options.step)
 
     if options.mode == 'train':
+        # noinspection PyUnboundLocalVariable
         model.train(train_batch_factory=batch_factory,
                     validation_batch_factory=validation_batch_factory,
                     num_passes=options.num_passes,
@@ -196,8 +198,10 @@ if __name__ == '__main__':
 
         Q_test = np.mean(all_identical)
 
+        # noinspection PyUnboundLocalVariable
         loss_test = np.mean(all_entropies) + regularization
 
         print("# Statistics for the whole dataset:")
+        # noinspection PyStringFormat
         print("# Q%s score (test set): %f" % (output_size, Q_test))
-        print("# loss (test set): %f" % (loss_test))
+        print("# loss (test set): %f" % loss_test)

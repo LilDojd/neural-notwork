@@ -67,6 +67,22 @@ def create_cartesian_grid(max_radius, n_features, bins_per_angstrom):
     return grid_matrix
 
 
+def create_cartesian_box(xyz, n_bins):
+    """
+    Create cartesian box for the whole protein
+    :param xyz:
+    :param n_bins:
+    :return:
+    """
+    max_val = np.amax(xyz)
+    min_val = np.amin(xyz)
+    radius = int(np.ceil((max_val - min_val) / 2 + 5))
+    # Only for 1 feature, e.g. charge
+    box = create_cartesian_grid(radius, 1, n_bins)
+
+    return box, max_val, min_val
+
+
 get_grid_shape_map = {CoordinateSystem.spherical: get_spherical_grid_shape,
                       CoordinateSystem.cubed_sphere: get_cubed_sphere_grid_shape,
                       CoordinateSystem.cartesian: get_cartesian_grid_shape}

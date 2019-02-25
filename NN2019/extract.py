@@ -15,8 +15,12 @@ from Grids import grids
 from pdb_parse import parse_pdb
 
 
+def extract_md():
+    pass
+
+
 # Add smoothing at this level
-def extract_mass_charge(pdb_filename, smoothen):
+def extract_mass_charge(pdb_filename, n_bins, smoothen=False):
     """Extract protein-level features from pdb file"""
 
     pdb_id = os.path.basename(pdb_filename).split('.')[0]
@@ -107,7 +111,25 @@ def extract_mass_charge(pdb_filename, smoothen):
                 assert (residue.name == sequence[i][residue_index_local])
 
     if smoothen:
-        pass
+
+        all_coords = structured_to_unstructured(features[['x', 'y', 'z']], dtype=np.float32)
+        all_coords.reshape(all_coords.shape[0], 3)
+        box_grid, max_val, min_val = grids.create_cartesian_box(all_coords, n_bins)
+
+        assert (len(box_grid.shape) == 4)
+        assert (box_grid.shape[0] == box_grid.shape[1] == box_grid.shape[2])
+        n_b = box_grid.shape[0]
+
+        boundaries = np.linspace(np.floor(min_val - 5), np.ceil(max_val + 5), n_b, endpoint=False)
+        boundaries += (boundaries[1] - boundaries[0])
+
+        indexx = np.digitize(all_coords, boundaries).reshape(all_coords.shape[0], 3)
+
+        for ind, row in enumerate(indexx[:]):
+            box_grid[row[0], row[1], row[2]] = features[['charge']][ind][0]
+
+
+
 
     # Convert relevant entries to standard numpy arrays
     masses_array = structured_to_unstructured(features[['mass']], dtype=np.float32)

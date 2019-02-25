@@ -18,7 +18,7 @@ import random
 
 import numpy as np
 
-from NN2019.Grids import grids
+from Grids import grids
 
 
 def get_batch(start_index, end_index, *values):
