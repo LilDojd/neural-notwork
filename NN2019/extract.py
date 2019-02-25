@@ -11,6 +11,7 @@ import simtk.openmm.app
 import simtk.unit
 from numpy.lib.recfunctions import structured_to_unstructured
 
+import smoothen
 from Grids import grids
 from pdb_parse import parse_pdb
 
@@ -20,7 +21,7 @@ def extract_md():
 
 
 # Add smoothing at this level
-def extract_mass_charge(pdb_filename, n_bins, smoothen=False):
+def extract_mass_charge(pdb_filename, n_bins, smooth=False, sigma=4):
     """Extract protein-level features from pdb file"""
 
     pdb_id = os.path.basename(pdb_filename).split('.')[0]
@@ -110,25 +111,10 @@ def extract_mass_charge(pdb_filename, n_bins, smoothen=False):
                 residue_index_local = residue.index - chain_start_index
                 assert (residue.name == sequence[i][residue_index_local])
 
-    if smoothen:
-
-        all_coords = structured_to_unstructured(features[['x', 'y', 'z']], dtype=np.float32)
-        all_coords.reshape(all_coords.shape[0], 3)
-        box_grid, max_val, min_val = grids.create_cartesian_box(all_coords, n_bins)
-
-        assert (len(box_grid.shape) == 4)
-        assert (box_grid.shape[0] == box_grid.shape[1] == box_grid.shape[2])
-        n_b = box_grid.shape[0]
-
-        boundaries = np.linspace(np.floor(min_val - 5), np.ceil(max_val + 5), n_b, endpoint=False)
-        boundaries += (boundaries[1] - boundaries[0])
-
-        indexx = np.digitize(all_coords, boundaries).reshape(all_coords.shape[0], 3)
-
-        for ind, row in enumerate(indexx[:]):
-            box_grid[row[0], row[1], row[2]] = features[['charge']][ind][0]
-
-
+    if smooth:
+        kernel = smoothen.construct_kernel(sigma)
+        new_box = smoothen.wave_transform_smoothing(features, kernel, n_bins)
+        # Now unmap box
 
 
     # Convert relevant entries to standard numpy arrays
