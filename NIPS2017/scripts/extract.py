@@ -16,7 +16,11 @@
 
 import glob
 import os
+import urllib.error
+import urllib.parse
+import urllib.request
 import warnings
+
 import Bio.PDB
 import Bio.PDB.DSSP
 import Bio.PDB.Vector
@@ -25,7 +29,6 @@ import simtk
 import simtk.openmm
 import simtk.openmm.app
 import simtk.unit
-import urllib.request, urllib.parse, urllib.error
 
 warnings.simplefilter(action = "ignore", category = FutureWarning)
 
