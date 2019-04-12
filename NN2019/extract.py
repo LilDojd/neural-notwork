@@ -322,7 +322,7 @@ if __name__ == '__main__':
     for key, value in sorted(vars(args).items()):
         print(key, "=", value)
 
-    en_table = pd.read_csv(args.energy_csv, index_col=0)
+    en_table = pd.read_csv(args.energy_csv, index_col=0, header=None)
 
     n_features = 2
     if args.add_seq_distance_feature:
