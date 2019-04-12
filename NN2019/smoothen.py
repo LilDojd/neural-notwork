@@ -51,15 +51,15 @@ def wave_transform_smoothing(features, n_bins=4):
     assert (len(box_grid.shape) == 4)
     assert (box_grid.shape[0] == box_grid.shape[1] == box_grid.shape[2])
     n_b = box_grid.shape[0]
-    boundaries = np.linspace(np.floor(min_val - 3), np.ceil(max_val + 3), n_b, endpoint=False)
-    boundaries += (boundaries[1] - boundaries[0])
+    bounds = np.linspace(np.floor(min_val - 3), np.ceil(max_val + 3), n_b, endpoint=False)
+    bounds += (bounds[1] - bounds[0])
 
     for atom in np.unique(features['mass']):
         box_temp = np.zeros_like(box_grid[:, :, :, 0])
         # extract features unique for all atom types
         atom_feat = features[features['mass'] == atom]
         atom_coords = structured_to_unstructured(atom_feat[['x', 'y', 'z']], dtype=np.float32)
-        indexx = np.digitize(atom_coords, boundaries)
+        indexx = np.digitize(atom_coords, bounds)
         # Vectorized cycle
         a, b, c = indexx.T.tolist()
         box_temp[a, b, c] = atom_feat['charge']
@@ -74,7 +74,7 @@ def wave_transform_smoothing(features, n_bins=4):
     box_grid[limiter] = 0
 
     assert (box_grid.shape == (n_b, n_b, n_b, 2))
-    return box_grid
+    return box_grid, bounds
 
 
 def unmap(new_box, boundaries, features, n_bins):
