@@ -40,7 +40,7 @@ def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
 
     first_model = structure.get_list()[0]
     sequence = []
-    energy = int(csv_df.loc[pdb_id][2])
+    energy = int(csv_df.loc[str(pdb_id)][2])
     aa_one_hot = []
     chain_ids = []
     for i, chain in enumerate(first_model):
