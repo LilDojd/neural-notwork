@@ -340,7 +340,7 @@ if __name__ == '__main__':
                                                        args.bins_per_angstrom,
                                                        args.add_seq_distance_feature,
                                                        args.output_dir,
-                                                       coordinate_system=coordinate_system,
+                                                       coor_sys=coordinate_system,
                                                        en_df=en_table) for pdb_filename in pdb_filenames)
     else:
         raise argparse.ArgumentTypeError("Unknown mode")
