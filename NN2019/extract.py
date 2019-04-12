@@ -2,6 +2,7 @@ import os
 
 import Bio.PDB
 import numpy as np
+import pandas as pd
 import simtk
 import simtk.openmm
 import simtk.openmm.app
@@ -12,10 +13,6 @@ import smoothen
 from Grids import grids
 
 center = np.array([41.073, 36.990, 28.097], dtype=np.float32)
-
-
-def extract_md():
-    pass
 
 
 def cut_active_center(feats, cent=center, rad=10):
@@ -30,20 +27,20 @@ def cut_active_center(feats, cent=center, rad=10):
     return new_features
 
 
-def extract_mass_charge(pdb_filename, cut=True, smooth=True, n_bins=4):
+def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
     """Extract protein-level features from pdb file"""
 
-    pdb_id = os.path.basename(pdb_filename).split('.')[0]
+    pdb_id = os.path.basename(pdb_filename).split('_')[1]
 
     # Read in PDB file
     pdb = simtk.openmm.app.PDBFile(pdb_filename)
 
-    # Also parse through Bio.PDB - to extract DSSP secondary structure info
     pdb_parser = Bio.PDB.PDBParser()
     structure = pdb_parser.get_structure(pdb_id, pdb_filename)
 
     first_model = structure.get_list()[0]
     sequence = []
+    energy = int(csv_df.loc[pdb_id][2])
     aa_one_hot = []
     chain_ids = []
     for i, chain in enumerate(first_model):
@@ -132,14 +129,14 @@ def extract_mass_charge(pdb_filename, cut=True, smooth=True, n_bins=4):
     charges_array = structured_to_unstructured(features[['charge']], dtype=np.float32)
     res_index_array = structured_to_unstructured(features[['res_index']], dtype=int)
 
-    return pdb_id, features, masses_array, charges_array, aa_one_hot, res_index_array, chain_boundary_indices, chain_ids
+    return pdb_id, features, masses_array, charges_array, aa_one_hot, energy, res_index_array, chain_boundary_indices, chain_ids
 
 
 def embed_in_grid(features, pdb_id, output_dir,
                   max_radius,
-                  n_features,
+                  n_feats,
                   bins_per_angstrom,
-                  coordinate_system,
+                  coord_sys,
                   local_center=center):
     """Embed masses and charge information in a spherical grid - specific for selected residue
        For space-reasons, only the indices into these grids are stored, and a selector
@@ -154,13 +151,13 @@ def embed_in_grid(features, pdb_id, output_dir,
     # We use hardcoded center to denote local coordinate system
     xyz = np.squeeze(position_array - local_center)
     # No rotation required because atoms are already aligned
-    if coordinate_system == grids.CoordinateSystem.spherical:
+    if coord_sys == grids.CoordinateSystem.spherical:
 
         # Convert to spherical coordinates
         r, theta, phi = grids.cartesian_to_spherical_coordinates(xyz)
 
         # Create grid
-        grid_matrix = grids.create_spherical_grid(max_radius=max_radius, n_features=n_features,
+        grid_matrix = grids.create_spherical_grid(max_radius=max_radius, n_features=n_feats,
                                                   bins_per_angstrom=bins_per_angstrom)
 
         # Bin each dimension independently
@@ -176,13 +173,13 @@ def embed_in_grid(features, pdb_id, output_dir,
         assert (not np.any(theta_bin >= grid_matrix.shape[1]))
         assert (not np.any(phi_bin >= grid_matrix.shape[2]))
 
-    elif coordinate_system == grids.CoordinateSystem.cubed_sphere:
+    elif coord_sys == grids.CoordinateSystem.cubed_sphere:
 
         # Convert to coordinates on the cubed sphere
         patch, r, xi, eta = grids.cartesian_to_cubed_sphere_vectorized(xyz[:, 0], xyz[:, 1], xyz[:, 2])
 
         # Create grid
-        grid_matrix = grids.create_cubed_sphere_grid(max_radius=max_radius, n_features=n_features,
+        grid_matrix = grids.create_cubed_sphere_grid(max_radius=max_radius, n_features=n_feats,
                                                      bins_per_angstrom=bins_per_angstrom)
 
         # Bin each dimension independently
@@ -199,10 +196,10 @@ def embed_in_grid(features, pdb_id, output_dir,
         assert (not np.any(xi_bin >= grid_matrix.shape[2]))
         assert (not np.any(eta_bin >= grid_matrix.shape[3]))
 
-    elif coordinate_system == grids.CoordinateSystem.cartesian:
+    elif coord_sys == grids.CoordinateSystem.cartesian:
 
         # Create grid
-        grid_matrix = grids.create_cartesian_grid(max_radius=max_radius, n_features=n_features,
+        grid_matrix = grids.create_cartesian_grid(max_radius=max_radius, n_features=n_feats,
                                                   bins_per_angstrom=bins_per_angstrom)
 
         # Bin each dimension of the cartesian coordinates
@@ -221,7 +218,7 @@ def embed_in_grid(features, pdb_id, output_dir,
     duplicates = {}
     for index, row in enumerate(indices_rows):
         if indices_rows.count(row) > 1:
-            index_matches = [index for index, value in enumerate(indices_rows) if value == row]
+            index_matches = [index for index, va in enumerate(indices_rows) if va == row]
             index_matches.sort()
             if index_matches[0] not in duplicates:
                 duplicates[index_matches[0]] = index_matches
@@ -250,9 +247,8 @@ def embed_in_grid(features, pdb_id, output_dir,
                         selector=selector)
 
 
-def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_angstrom,
-                               add_seq_distance_feature, output_dir, coordinate_system,
-                               z_direction):
+def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstrom,
+                               add_seq_distance_feature, output_dir, coor_sys, en_df):
     """
     Creates both atom-level and residue-level (grid) features from a pdb file
     """
@@ -260,8 +256,8 @@ def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_an
     print(pdb_filename)
 
     # Extract basic atom features (mass, charge, etc)
-    [pdb_id, features, masses_array, charges_array, aa_one_hot, residue_index_array, chain_boundary_indices,
-     chain_ids] = extract_mass_charge(pdb_filename)
+    [pdb_id, features, masses_array, charges_array, aa_one_hot, energy, residue_index_array, chain_boundary_indices,
+     chain_ids] = extract_mass_charge(pdb_filename, csv_df=en_df)
 
     # Save protein level features
     if not os.path.exists(output_dir):
@@ -274,11 +270,11 @@ def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_an
                             "masses", "charges"],
                         chain_boundary_indices=chain_boundary_indices,
                         chain_ids=chain_ids,
+                        energy=energy,
                         aa_one_hot=aa_one_hot,
-                        coordinate_system=np.array(coordinate_system.value, dtype=np.int32),
-                        z_direction=np.array(z_direction.value, dtype=np.int32),
+                        coordinate_system=np.array(coor_sys.value, dtype=np.int32),
                         max_radius=np.array(max_radius, dtype=np.float32),  # angstrom
-                        n_features=np.array(n_features, dtype=np.int32),
+                        n_features=np.array(n_feat, dtype=np.int32),
                         bins_per_angstrom=np.array(bins_per_angstrom, dtype=np.float32),
                         n_residues=np.array(
                             len(np.unique(structured_to_unstructured(features[['res_index']], dtype=int)))))
@@ -286,6 +282,67 @@ def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_an
     # Embed in a grid
     embed_in_grid(features, pdb_id, output_dir,
                   max_radius=max_radius,
-                  n_features=n_features,
+                  n_feats=n_feat,
                   bins_per_angstrom=bins_per_angstrom,
-                  coordinate_system=coordinate_system)
+                  coord_sys=coor_sys)
+
+
+if __name__ == '__main__':
+    import glob
+    import joblib
+
+    from utils import str2bool
+
+    import argparse
+
+    parser = argparse.ArgumentParser()
+
+    subparsers = parser.add_subparsers(help="Sub-command help", dest="mode")
+
+    parser_extract = subparsers.add_parser("extract", help="extract features")
+    parser_extract.add_argument("pdb_input_dir", type=str)
+    parser_extract.add_argument("output_dir", type=str)
+    parser_extract.add_argument("energy_csv", type=str)
+
+    parser.add_argument("--coordinate-system", choices=[e.name for e in grids.CoordinateSystem],
+                        default=grids.CoordinateSystem.spherical.name,
+                        help="Which coordinate system to use (default: %(default)s)")
+    parser.add_argument("--max-radius", metavar="VAL", type=int, default=12,
+                        help="Maximal radius in angstrom (default: %(default)s)")
+    parser.add_argument("--bins-per-angstrom", metavar="VAL", type=float, default=2,
+                        help="Bins per Angstrom (default: %(default)s)")
+    parser.add_argument("--n-proc", metavar="VAL", type=int, default=1,
+                        help="Number of processes (default: %(default)s)")
+    parser.add_argument("--include-center", metavar="VAL", type=str2bool, default=False,
+                        help="Include the center AA  (default: %(default)s)")
+    parser.add_argument("--add-seq-distance-feature", metavar="VAL", type=str2bool, default=False,
+                        help="Add the sequence distance as a feature  (default: %(default)s)")
+
+    args = parser.parse_args()
+
+    print("# Arguments")
+    for key, value in sorted(vars(args).items()):
+        print(key, "=", value)
+
+    en_table = pd.read_csv(args.energy_csv, index_col=0)
+
+    n_features = 2
+    if args.add_seq_distance_feature:
+        n_features = 3
+    print("n_features: ", n_features)
+
+    coordinate_system = grids.CoordinateSystem[args.coordinate_system]
+
+    if args.mode == "extract":
+        pdb_filenames = glob.glob(os.path.join(args.pdb_input_dir, "*.pdb"))
+        joblib.Parallel(n_jobs=args.n_proc, batch_size=1)(
+            joblib.delayed(extract_atomistic_features)(pdb_filename,
+                                                       args.max_radius,
+                                                       n_features,
+                                                       args.bins_per_angstrom,
+                                                       args.add_seq_distance_feature,
+                                                       args.output_dir,
+                                                       coordinate_system=coordinate_system,
+                                                       en_df=en_table) for pdb_filename in pdb_filenames)
+    else:
+        raise argparse.ArgumentTypeError("Unknown mode")
