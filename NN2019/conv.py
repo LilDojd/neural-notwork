@@ -14,8 +14,8 @@
 # =============================================================================
 
 import tensorflow as tf
-from Deepfold.Utils.pad_wrap import pad_wrap
 
+from pad_wrap import pad_wrap
 from . import pad_cubed_sphere
 
 

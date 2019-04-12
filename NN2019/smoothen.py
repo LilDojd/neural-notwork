@@ -46,25 +46,25 @@ def fft_conv(atom_mass, atom_grid, n_bins):
 def wave_transform_smoothing(features, n_bins=4):
     all_coords = structured_to_unstructured(features[['x', 'y', 'z']], dtype=np.float32)
     all_coords.reshape(all_coords.shape[0], 3)
-    box_grid, max_val, min_val = grids.create_cartesian_box(all_coords, n_bins)
+    box_grid, max_val, min_val, radius = grids.create_cartesian_box(all_coords, n_bins)
 
-    assert (len(box_grid.shape) == 3)
+    assert (len(box_grid.shape) == 4)
     assert (box_grid.shape[0] == box_grid.shape[1] == box_grid.shape[2])
     n_b = box_grid.shape[0]
-
-    boundaries = np.linspace(np.floor(min_val - 5), np.ceil(max_val + 5), n_b, endpoint=False)
+    boundaries = np.linspace(np.floor(min_val - 3), np.ceil(max_val + 3), n_b, endpoint=False)
     boundaries += (boundaries[1] - boundaries[0])
 
     for atom in np.unique(features['mass']):
-        box_temp = np.zeros_like(box_grid)
+        box_temp = np.zeros_like(box_grid[:, :, :, 0])
         # extract features unique for all atom types
         atom_feat = features[features['mass'] == atom]
         atom_coords = structured_to_unstructured(atom_feat[['x', 'y', 'z']], dtype=np.float32)
         indexx = np.digitize(atom_coords, boundaries)
-        # Vectorize somehow
-        for ind, row in enumerate(indexx[:]):
-            box_temp[row[0], row[1], row[2]] = atom_feat[ind]['charge']
-        box_grid += fft_conv(atom, np.squeeze(box_temp), n_bins)
+        # Vectorized cycle
+        a, b, c = indexx.T.tolist()
+        box_temp[a, b, c] = atom_feat['charge']
+        box_grid[a, b, c, 1] += atom_feat['mass']
+        box_grid[:, :, :, 0] += fft_conv(atom, np.squeeze(box_temp), n_bins)
 
     # for mass in np.unique(features[['mass']]):
     #     sigma_hradius = np.ceil(VdWs[mass[0]] * n_bins) / 4
@@ -73,9 +73,36 @@ def wave_transform_smoothing(features, n_bins=4):
     limiter = np.absolute(box_grid) < np.power(10., -5)
     box_grid[limiter] = 0
 
-    assert (box_grid.shape == (n_b, n_b, n_b))
+    assert (box_grid.shape == (n_b, n_b, n_b, 2))
     return box_grid
 
 
-def unmap(new_box, boundaries):
-    pass
+def unmap(new_box, boundaries, features, n_bins):
+    positions = np.where(np.logical_and(new_box[:, :, :, 0] != 0, new_box[:, :, :, 1] == 0))
+    pos_array = np.column_stack(positions)
+
+    def pos_to_coord(pos):
+        return boundaries[pos] + 1 / (2 * n_bins)
+
+    vector_ptc = np.vectorize(pos_to_coord, otypes=[np.float32])
+    unmapped_coords = vector_ptc(pos_array)
+    last_res = int(max(features['res_index'])) + 1
+    smooth_feature_addition = np.empty(shape=(len(unmapped_coords), 1), dtype=[('mass', np.float32),
+                                                                               ('charge', np.float32),
+                                                                               ('name', 'a5'),
+                                                                               ('res_index', int),
+                                                                               ('x', np.float32), ('y', np.float32),
+                                                                               ('z', np.float32)])
+    for index, coords in enumerate(pos_array):
+        x, y, z = coords.T.tolist()
+        add_tuple = tuple([0, new_box[x, y, z, 0], 'e-cl', last_res + index] + list(unmapped_coords[index]))
+        smooth_feature_addition[index] = add_tuple
+    new_feats = np.concatenate((features, smooth_feature_addition), axis=0)
+
+    return new_feats
+
+    # bound_list = [boundaries] * 3
+    # xx, yy, zz = np.meshgrid(*bound_list)
+    # box_coords = np.array(list(zip(yy.ravel(), xx.ravel(), zz.ravel(),
+    # new_box.ravel())), dtype='f4,f4,f4,f4').reshape(xx.shape)
+    # point_coords = box_coords[box_coords[3] != 0]

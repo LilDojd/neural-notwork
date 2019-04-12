@@ -111,16 +111,14 @@ def extract_mass_charge(pdb_filename, n_bins, smooth=False, sigma=4):
                 residue_index_local = residue.index - chain_start_index
                 assert (residue.name == sequence[i][residue_index_local])
 
-    if smooth:
-        new_box = smoothen.wave_transform_smoothing(features, n_bins)
-        # Now unmap box
-
     # Convert relevant entries to standard numpy arrays
     masses_array = structured_to_unstructured(features[['mass']], dtype=np.float32)
     charges_array = structured_to_unstructured(features[['charge']], dtype=np.float32)
     res_index_array = structured_to_unstructured(features[['res_index']], dtype=int)
 
     if smooth:
+        new_box = smoothen.wave_transform_smoothing(features, n_bins)
+        # Now unmap box
         return new_box, pdb_id, features, masses_array, charges_array, aa_one_hot, res_index_array, chain_boundary_indices, chain_ids
     else:
         return pdb_id, features, masses_array, charges_array, aa_one_hot, res_index_array, chain_boundary_indices, chain_ids

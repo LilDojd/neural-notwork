@@ -436,6 +436,7 @@ if __name__ == '__main__':
                                protein_feature_filenames[:train_end],
                                grid_feature_filenames[:train_end])
 
+    ###
     batch_factory.add_data_set("model_output",
                                protein_feature_filenames[:train_end],
                                key_filter=["aa_one_hot"])

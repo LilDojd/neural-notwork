@@ -76,12 +76,11 @@ def create_cartesian_box(xyz, n_bins):
     """
     max_val = np.amax(xyz)
     min_val = np.amin(xyz)
-    radius = int(np.ceil((max_val - min_val) / 2 + 5))
-    # Only for 1 feature, e.g. charge
-    box = create_cartesian_grid(radius, 1, n_bins)
-    box_dim = np.squeeze(box)
+    radius = int(np.ceil((max_val - min_val) / 2 + 3))
+    # Only for 2 feature, e.g. charge, mass
+    box = create_cartesian_grid(radius, 2, n_bins)
 
-    return box_dim, max_val, min_val
+    return box, max_val, min_val, radius
 
 
 get_grid_shape_map = {CoordinateSystem.spherical: get_spherical_grid_shape,
