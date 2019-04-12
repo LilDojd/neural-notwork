@@ -1,7 +1,4 @@
 import os
-import urllib.error
-import urllib.parse
-import urllib.request
 
 import Bio.PDB
 import numpy as np
@@ -11,9 +8,9 @@ import simtk.openmm.app
 import simtk.unit
 from numpy.lib.recfunctions import structured_to_unstructured
 
-import smoothen
 from Grids import grids
-from pdb_parse import parse_pdb
+
+center = np.array([41.073, 36.990, 28.097], dtype=np.float32)
 
 
 def extract_md():
@@ -21,7 +18,7 @@ def extract_md():
 
 
 # Add smoothing at this level
-def extract_mass_charge(pdb_filename, n_bins, smooth=False, sigma=4):
+def extract_mass_charge(pdb_filename, n_bins, smooth=False):
     """Extract protein-level features from pdb file"""
 
     pdb_id = os.path.basename(pdb_filename).split('.')[0]
@@ -116,12 +113,7 @@ def extract_mass_charge(pdb_filename, n_bins, smooth=False, sigma=4):
     charges_array = structured_to_unstructured(features[['charge']], dtype=np.float32)
     res_index_array = structured_to_unstructured(features[['res_index']], dtype=int)
 
-    if smooth:
-        new_box = smoothen.wave_transform_smoothing(features, n_bins)
-        # Now unmap box
-        return new_box, pdb_id, features, masses_array, charges_array, aa_one_hot, res_index_array, chain_boundary_indices, chain_ids
-    else:
-        return pdb_id, features, masses_array, charges_array, aa_one_hot, res_index_array, chain_boundary_indices, chain_ids
+    return pdb_id, features, masses_array, charges_array, aa_one_hot, res_index_array, chain_boundary_indices, chain_ids
 
 
 def embed_in_grid(features, pdb_id, output_dir,
@@ -130,8 +122,8 @@ def embed_in_grid(features, pdb_id, output_dir,
                   bins_per_angstrom,
                   coordinate_system,
                   z_direction,
-                  include_center, smoothen=False):
-    """Embed masses and charge information in a spherical grid - specific for each residue
+                  include_center, local_center=center, smoothen=False):
+    """Embed masses and charge information in a spherical grid - specific for selected residue
        For space-reasons, only the indices into these grids are stored, and a selector
        specifying which atoms are relevant (i.e. within range) for the current residue.
     """
@@ -349,39 +341,3 @@ def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_an
                   z_direction=z_direction,
                   include_center=include_center)
 
-
-def fetch_and_extract(line, max_radius, n_features, bins_per_angstrom, add_seq_distance_feature,
-                      reduce_executable, output_dir, pdb_output_dir, coordinate_system, z_direction,
-                      include_center):
-    """
-    extract_atomistic_features wrapper that fetches PDB files first
-    """
-
-    # Setup PDB URL
-    url_base = "http://www.rcsb.org/pdb/download/downloadFile.do?fileFormat=pdb&compression=NO&structureId="
-
-    # Check that entry has expected format
-    entry = line.split()[0]
-    if len(entry) != 5:
-        print("skipping: %s" % entry)
-        return
-
-    # Extract PDBID, ChainID and URL from entry
-    pdb_id = entry[:4]
-    chain_id = entry[4]
-    url = url_base + pdb_id
-
-    # Parse structures and call extract_atomistic_features
-    try:
-        structure = parse_pdb(urllib.request.urlopen(url), pdb_id, chain_id, reduce_executable)
-        print("%s OK" % entry)
-        io = Bio.PDB.PDBIO()
-        io.set_structure(structure)
-        pdb_filename = os.path.join(pdb_output_dir, entry + '.pdb')
-        io.save(pdb_filename)
-
-        extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_angstrom, add_seq_distance_feature,
-                                   output_dir, coordinate_system, z_direction, include_center)
-    except Exception as e:
-        print("%s Failed: %s" % (entry, e))
-        pass
