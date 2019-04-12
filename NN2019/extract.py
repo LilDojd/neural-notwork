@@ -81,7 +81,7 @@ def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
 
     # Create forcefield in order to extract charges
     # noinspection PyTypeChecker
-    forcefield = simtk.openmm.app.ForceField('amber14/protein.ff14SB.xml', 'amber14/tip3p.xml', 'amber14/spce.xml')
+    forcefield = simtk.openmm.app.ForceField('amber14/protein.ff14SB.xml', 'amber14/spce.xml')
 
     # Add hydrogens if necessary
     modeller = simtk.openmm.app.Modeller(pdb.getTopology(), pdb.getPositions())
