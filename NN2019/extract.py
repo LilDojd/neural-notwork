@@ -252,7 +252,7 @@ def embed_in_grid(features, pdb_id, output_dir,
 
 def extract_atomistic_features(pdb_filename, max_radius, n_features, bins_per_angstrom,
                                add_seq_distance_feature, output_dir, coordinate_system,
-                               z_direction, include_center):
+                               z_direction):
     """
     Creates both atom-level and residue-level (grid) features from a pdb file
     """
