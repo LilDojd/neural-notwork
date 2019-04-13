@@ -17,6 +17,8 @@ from Grids import grids
 center = np.array([41.073, 36.990, 28.097], dtype=np.float32)
 
 
+# I participated in a contest of how ugly a simple function can be and won
+
 def checkpoint(mode='load', pdbid=None, filepath="./checkpoint.json"):
     json_file = Path(filepath)
     if json_file.is_file():
@@ -24,12 +26,16 @@ def checkpoint(mode='load', pdbid=None, filepath="./checkpoint.json"):
             with open(filepath, 'r') as readf:
                 return json.load(readf)
         elif mode == 'dump':
-            with open(filepath, 'r') as readf:
-                data = json.load(readf)
             try:
-                data.append(pdbid)
-            except AttributeError:
-                data = [data, pdbid]
+                with open(filepath, 'r') as readf:
+                    data = json.load(readf)
+                try:
+                    data.append(pdbid)
+                except AttributeError:
+                    data = [data, pdbid]
+            except json.decoder.JSONDecodeError:
+                data = pdbid
+                pass
             with open(filepath, 'w') as dumpf:
                 json.dump(data, dumpf)
     else:
