@@ -213,33 +213,12 @@ def embed_in_grid(features, pdb_id, output_dir,
     selector = np.where(r < max_radius)[0]
     # Apply selector on indices array
     indices = indices[selector]
-    print("HERE1")
-    # Check for multiple atoms mapped to same bin
-    indices_rows = [tuple(row) for row in indices]
-    duplicates = {}
-    for index, row in enumerate(indices_rows):
-        if indices_rows.count(row) > 1:
-            index_matches = [index for index, va in enumerate(indices_rows) if va == row]
-            index_matches.sort()
-            if index_matches[0] not in duplicates:
-                duplicates[index_matches[0]] = index_matches
-    print("HERE2")
-    if len(duplicates) > 0:
-        print("WARNING: multiple atoms in same grid bin: (%s)" % pdb_id)
-        for duplicate_indices in list(duplicates.values()):
-            for i in duplicate_indices:
-                print("\t", features[selector][i])
-            for i_index in range(len(duplicate_indices)):
-                coord1 = structured_to_unstructured(features[selector][duplicate_indices[i_index]][['x', 'y', 'z']],
-                                                    dtype=np.float32)
-                for j_index in range(i_index + 1, len(duplicate_indices)):
-                    coord2 = structured_to_unstructured(features[selector][duplicate_indices[j_index]][['x', 'y',
-                                                                                                        'z']],
-                                                        dtype=np.float32)
-                    print('\t\tdistance(%s,%s) = %s' % (coord1, coord2, np.linalg.norm(coord2 - coord1)))
-            print()
-
-    # Append indices and selector for current residues to list
+    # Efficiently check for duplicates
+    ran_arr = np.random.rand(indices.shape[1])
+    check = indices.dot(ran_arr)
+    unique, index = np.unique(check, return_index=True)
+    if indices.shape[0] - indices[index].shape[0] != 0:
+        print(f"WARNING! Overlapping bins in {pdb_id}")
 
     # Data is stored most efficiently when encoded as Numpy arrays. We store data as selector pointing to
     # relevant indeces in protein array
