@@ -31,6 +31,7 @@ def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
     """Extract protein-level features from pdb file"""
 
     pdb_id = os.path.basename(pdb_filename).split('_')[1]
+    pdb_towrite = "_".join(os.path.basename(pdb_filename).split('_')[1:3])
 
     # Read in PDB file
     pdb = simtk.openmm.app.PDBFile(pdb_filename)
@@ -129,7 +130,7 @@ def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
     charges_array = structured_to_unstructured(features[['charge']], dtype=np.float32)
     res_index_array = structured_to_unstructured(features[['res_index']], dtype=int)
 
-    return pdb_id, features, masses_array, charges_array, aa_one_hot, energy, res_index_array, chain_boundary_indices, chain_ids
+    return pdb_towrite, features, masses_array, charges_array, aa_one_hot, energy, res_index_array, chain_boundary_indices, chain_ids
 
 
 def embed_in_grid(features, pdb_id, output_dir,
