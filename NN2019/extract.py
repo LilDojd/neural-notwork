@@ -276,35 +276,37 @@ def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstr
     print(pdb_filename)
 
     # Extract basic atom features (mass, charge, etc)
-    [pdb_id, features, masses_array, charges_array, aa_one_hot, energy, residue_index_array, chain_boundary_indices,
-     chain_ids] = extract_mass_charge(pdb_filename, csv_df=en_df, smooth=smooth)
+    info = extract_mass_charge(pdb_filename, csv_df=en_df, smooth=smooth)
+    if info:
+        [pdb_id, features, masses_array, charges_array, aa_one_hot, energy, residue_index_array, chain_boundary_indices,
+         chain_ids] = info
 
-    # Save protein level features
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    np.savez_compressed(os.path.join(output_dir, "%s_protein_features" % pdb_id),
-                        masses=masses_array,
-                        charges=charges_array,
-                        residue_index=residue_index_array,
-                        residue_features=["masses", "charges", 'residue_index'] if add_seq_distance_feature else [
-                            "masses", "charges"],
-                        chain_boundary_indices=chain_boundary_indices,
-                        chain_ids=chain_ids,
-                        energy=energy,
-                        aa_one_hot=aa_one_hot,
-                        coordinate_system=np.array(coor_sys.value, dtype=np.int32),
-                        max_radius=np.array(max_radius, dtype=np.float32),  # angstrom
-                        n_features=np.array(n_feat, dtype=np.int32),
-                        bins_per_angstrom=np.array(bins_per_angstrom, dtype=np.float32),
-                        n_residues=np.array(
-                            len(np.unique(structured_to_unstructured(features[['res_index']], dtype=int)))))
+        # Save protein level features
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        np.savez_compressed(os.path.join(output_dir, "%s_protein_features" % pdb_id),
+                            masses=masses_array,
+                            charges=charges_array,
+                            residue_index=residue_index_array,
+                            residue_features=["masses", "charges", 'residue_index'] if add_seq_distance_feature else [
+                                "masses", "charges"],
+                            chain_boundary_indices=chain_boundary_indices,
+                            chain_ids=chain_ids,
+                            energy=energy,
+                            aa_one_hot=aa_one_hot,
+                            coordinate_system=np.array(coor_sys.value, dtype=np.int32),
+                            max_radius=np.array(max_radius, dtype=np.float32),  # angstrom
+                            n_features=np.array(n_feat, dtype=np.int32),
+                            bins_per_angstrom=np.array(bins_per_angstrom, dtype=np.float32),
+                            n_residues=np.array(
+                                len(np.unique(structured_to_unstructured(features[['res_index']], dtype=int)))))
 
-    # Embed in a grid
-    embed_in_grid(features, pdb_id, output_dir,
-                  max_radius=max_radius,
-                  n_feats=n_feat,
-                  bins_per_angstrom=bins_per_angstrom,
-                  coord_sys=coor_sys)
+        # Embed in a grid
+        embed_in_grid(features, pdb_id, output_dir,
+                      max_radius=max_radius,
+                      n_feats=n_feat,
+                      bins_per_angstrom=bins_per_angstrom,
+                      coord_sys=coor_sys)
 
     checkpoint('dump', pdb_filename)
 
