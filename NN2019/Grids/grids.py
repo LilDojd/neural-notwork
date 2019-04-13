@@ -133,7 +133,7 @@ def cartesian_to_spherical_coordinates(xyz):
 
     # Convert to spherical coordinates
     r = np.sqrt(xyz[:, 0] ** 2 + xyz[:, 1] ** 2 + xyz[:, 2] ** 2)
-    theta = np.arccos(np.sqrt(xyz[:, 2]) / r)  # polar angle - inclination from z-axis
+    theta = np.arccos(xyz[:, 2] / r)  # polar angle - inclination from z-axis
     phi = np.arctan2(xyz[:, 1], xyz[:, 0])
 
     return r, theta, phi

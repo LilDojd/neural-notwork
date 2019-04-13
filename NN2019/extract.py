@@ -215,7 +215,12 @@ def embed_in_grid(features, pdb_id, output_dir,
         r = np.sqrt(xyz[:, 0] ** 2 + xyz[:, 1] ** 2 + xyz[:, 2] ** 2)
 
     # Create an index array to keep track of entries within range
-    selector = np.where(r < max_radius)[0]
+    selector_rad = np.where(r < max_radius)[0]
+    # Selector to exclude overlapping bins
+    indices_df = pd.DataFrame(indices, index=None, columns=None)
+    unselector_dupl = indices_df[indices_df.duplicated(keep='first')].index.values
+    # Create selector as selector_rad - unselector_dupl
+    selector = selector_rad[~np.in1d(selector_rad, unselector_dupl)]
     # Apply selector on indices array
     indices = indices[selector]
     # Efficiently check for duplicates
