@@ -1,4 +1,6 @@
+import json
 import os
+from pathlib import Path
 
 import Bio.PDB
 import numpy as np
@@ -13,6 +15,27 @@ import smoothen
 from Grids import grids
 
 center = np.array([41.073, 36.990, 28.097], dtype=np.float32)
+
+
+def checkpoint(mode='load', pdbid=None, filepath="./checkpoint.json"):
+    pickle_file = Path(filepath)
+    if pickle_file.is_file():
+        if mode == 'load':
+            with open(filepath, 'r') as readf:
+                return json.load(readf)
+        elif mode == 'dump':
+            with open(filepath, 'r') as readf:
+                data = json.load(readf)
+            try:
+                data.append(pdbid)
+            except AttributeError:
+                data = [data]
+                data.append(pdbid)
+            with open(filepath, 'w') as dumpf:
+                json.dump(data, dumpf)
+    else:
+        with open(filepath, 'w') as newf:
+            json.dump(pdbid, newf)
 
 
 def cut_active_center(feats, cent=center, rad=10):
@@ -42,7 +65,9 @@ def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
     first_model = structure.get_list()[0]
     sequence = []
     try:
-        energy = int(csv_df.loc[str(pdb_id)][2])
+        energy_class = int(csv_df.loc[str(pdb_id)][2])
+        energy_val = int(csv_df.loc[str(pdb_id)][1])
+        energy = [energy_class, energy_val]
     except KeyError:
         print(f"No energy value for {pdb_id}")
         return
@@ -277,6 +302,8 @@ def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstr
                   bins_per_angstrom=bins_per_angstrom,
                   coord_sys=coor_sys)
 
+    checkpoint('dump', pdb_filename)
+
 
 if __name__ == '__main__':
     import glob
@@ -326,6 +353,8 @@ if __name__ == '__main__':
 
     if args.mode == "extract":
         pdb_filenames = glob.glob(os.path.join(args.pdb_input_dir, "*.pdb"))
+        to_pass = checkpoint()
+        pdb_filenames = [i for i in pdb_filenames if i not in to_pass]
         joblib.Parallel(n_jobs=args.n_proc, batch_size=1)(
             joblib.delayed(extract_atomistic_features)(pdb_filename,
                                                        args.max_radius,
