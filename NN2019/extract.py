@@ -213,7 +213,7 @@ def embed_in_grid(features, pdb_id, output_dir,
     selector = np.where(r < max_radius)[0]
     # Apply selector on indices array
     indices = indices[selector]
-
+    print("HERE1")
     # Check for multiple atoms mapped to same bin
     indices_rows = [tuple(row) for row in indices]
     duplicates = {}
@@ -223,6 +223,7 @@ def embed_in_grid(features, pdb_id, output_dir,
             index_matches.sort()
             if index_matches[0] not in duplicates:
                 duplicates[index_matches[0]] = index_matches
+    print("HERE2")
     if len(duplicates) > 0:
         print("WARNING: multiple atoms in same grid bin: (%s)" % pdb_id)
         for duplicate_indices in list(duplicates.values()):
