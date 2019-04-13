@@ -38,7 +38,7 @@ def checkpoint(mode='load', pdbid=None, filepath="./checkpoint.json"):
             json.dump(pdbid, newf)
 
 
-def cut_active_center(feats, cent=center, rad=10):
+def cut_active_center(feats, cent=center, rad=12):
     """Leave only active centre for time-optimization reasons"""
     coords = np.squeeze(structured_to_unstructured(feats[['x', 'y', 'z']], dtype=np.float32))
     local_sys = coords - cent
