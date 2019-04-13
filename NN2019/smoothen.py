@@ -46,13 +46,15 @@ def fft_conv(atom_mass, atom_grid, n_bins):
 
 def wave_transform_smoothing(features, n_bins=4):
     all_coords = structured_to_unstructured(features[['x', 'y', 'z']], dtype=np.float32)
-    all_coords.reshape(all_coords.shape[0], 3)
+    all_coords = np.squeeze(all_coords)
     box_grid, max_val, min_val, radius = grids.create_cartesian_box(all_coords, n_bins)
 
     assert (len(box_grid.shape) == 4)
     assert (box_grid.shape[0] == box_grid.shape[1] == box_grid.shape[2])
     n_b = box_grid.shape[0]
-    bounds = np.linspace(np.floor(min_val - 3), np.ceil(max_val + 3), n_b, endpoint=False)
+    bounds = np.linspace(-radius, radius, n_b, endpoint=False)
+    bounds += np.floor(min_val - 3) - bounds[0]
+    bounds += bounds[1] - bounds[0]
 
     for atom in np.unique(features['mass']):
         box_temp = np.zeros_like(box_grid[:, :, :, 0])
@@ -87,6 +89,14 @@ def unmap(new_box, boundaries, features, n_bins):
     vector_ptc = np.vectorize(pos_to_coord, otypes=[np.float32])
     unmapped_coords = vector_ptc(pos_array)
     last_res = int(max(features['res_index'])) + 1
+    # add round coords to the closest bin center
+    coords = structured_to_unstructured(features[['x', 'y', 'z']])
+    indexx = np.digitize(coords, boundaries)
+    new_coords = vector_ptc(indexx)
+    assert (new_coords.shape == coords.shape)
+    for i, dim in enumerate(('x', 'y', 'z')):
+        features[dim] = np.squeeze(new_coords)[:, i].reshape(new_coords.shape[0], 1)
+
     smooth_feature_addition = np.empty(shape=(len(unmapped_coords), 1), dtype=[('mass', np.float32),
                                                                                ('charge', np.float32),
                                                                                ('name', 'a5'),
