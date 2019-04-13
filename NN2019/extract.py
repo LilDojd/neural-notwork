@@ -19,6 +19,7 @@ center = np.array([41.073, 36.990, 28.097], dtype=np.float32)
 
 # I participated in a contest of how ugly a simple function can be and won
 
+
 def checkpoint(mode='load', pdbid=None, filepath="./checkpoint.json"):
     json_file = Path(filepath)
     if json_file.is_file():

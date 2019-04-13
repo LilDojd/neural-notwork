@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="4f507e43-7f1f-476b-a3c3-56d306c912f8" name="Lab" url="http://vsb.fbb.msu.ru">
+        <fileTransfer host="vsb.fbb.msu.ru" port="22022" rootFolder="/home/domain/yawner/2019/DFPase" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22022" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
