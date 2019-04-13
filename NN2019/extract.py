@@ -36,7 +36,7 @@ def checkpoint(mode='load', pdbid=None, filepath="./checkpoint.json"):
             except json.decoder.JSONDecodeError:
                 data = pdbid
                 pass
-            with open(filepath, 'a') as dumpf:
+            with open(filepath, 'w') as dumpf:
                 json.dump(data, dumpf)
     else:
         json_file.touch()
