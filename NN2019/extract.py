@@ -18,8 +18,8 @@ center = np.array([41.073, 36.990, 28.097], dtype=np.float32)
 
 
 def checkpoint(mode='load', pdbid=None, filepath="./checkpoint.json"):
-    pickle_file = Path(filepath)
-    if pickle_file.is_file():
+    json_file = Path(filepath)
+    if json_file.is_file():
         if mode == 'load':
             with open(filepath, 'r') as readf:
                 return json.load(readf)
@@ -29,13 +29,11 @@ def checkpoint(mode='load', pdbid=None, filepath="./checkpoint.json"):
             try:
                 data.append(pdbid)
             except AttributeError:
-                data = [data]
-                data.append(pdbid)
+                data = [data, pdbid]
             with open(filepath, 'w') as dumpf:
                 json.dump(data, dumpf)
     else:
-        with open(filepath, 'w') as newf:
-            json.dump(pdbid, newf)
+        json_file.touch()
 
 
 def cut_active_center(feats, cent=center, rad=12):
@@ -354,7 +352,8 @@ if __name__ == '__main__':
     if args.mode == "extract":
         pdb_filenames = glob.glob(os.path.join(args.pdb_input_dir, "*.pdb"))
         to_pass = checkpoint()
-        pdb_filenames = [i for i in pdb_filenames if i not in to_pass]
+        if to_pass:
+            pdb_filenames = [pdb for pdb in pdb_filenames if pdb not in to_pass]
         joblib.Parallel(n_jobs=args.n_proc, batch_size=1)(
             joblib.delayed(extract_atomistic_features)(pdb_filename,
                                                        args.max_radius,
