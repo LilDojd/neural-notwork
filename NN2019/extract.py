@@ -170,8 +170,8 @@ def embed_in_grid(features, pdb_id, output_dir,
         indices = np.vstack((r_bin, theta_bin, phi_bin)).transpose()
 
         # Check that bin indices are within grid
-        assert (not np.any(theta_bin >= grid_matrix.shape[1]))
-        assert (not np.any(phi_bin >= grid_matrix.shape[2]))
+        assert (not np.any(theta_bin > grid_matrix.shape[1]))
+        assert (not np.any(phi_bin > grid_matrix.shape[2]))
 
     elif coord_sys == grids.CoordinateSystem.cubed_sphere:
 

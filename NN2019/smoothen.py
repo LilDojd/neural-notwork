@@ -53,7 +53,6 @@ def wave_transform_smoothing(features, n_bins=4):
     assert (box_grid.shape[0] == box_grid.shape[1] == box_grid.shape[2])
     n_b = box_grid.shape[0]
     bounds = np.linspace(np.floor(min_val - 3), np.ceil(max_val + 3), n_b, endpoint=False)
-    bounds += (bounds[1] - bounds[0])
 
     for atom in np.unique(features['mass']):
         box_temp = np.zeros_like(box_grid[:, :, :, 0])

@@ -133,7 +133,7 @@ def cartesian_to_spherical_coordinates(xyz):
 
     # Convert to spherical coordinates
     r = np.sqrt(xyz[:, 0] ** 2 + xyz[:, 1] ** 2 + xyz[:, 2] ** 2)
-    theta = np.arctan2(np.sqrt(xyz[:, 0] ** 2 + xyz[:, 1] ** 2), xyz[:, 2])  # polar angle - inclination from z-axis
+    theta = np.arctan(np.sqrt(xyz[:, 0] ** 2 + xyz[:, 1] ** 2) / xyz[:, 2])  # polar angle - inclination from z-axis
     phi = np.arctan2(xyz[:, 1], xyz[:, 0])
 
     return r, theta, phi
@@ -207,38 +207,38 @@ def cartesian_to_cubed_sphere(x, y, z, rtol=1e-05):
     elif x >= np.abs(y) and x >= np.abs(z):
         # Front patch (I)
         patch = 0
-        xi = np.arctan2(y, x)
-        eta = np.arctan2(z, x)
+        xi = np.arctan(y / x)
+        eta = np.arctan(z / x)
 
     elif y >= np.abs(x) and y >= np.abs(z):
         # East patch (II)
         patch = 1
-        xi = np.arctan2(-x, y)
-        eta = np.arctan2(z, y)
+        xi = np.arctan(-x / y)
+        eta = np.arctan(z / y)
 
     elif -x >= np.abs(y) and -x >= np.abs(z):
         # Back patch (III)
         patch = 2
-        xi = np.arctan2(y, x)
-        eta = np.arctan2(-z, x)
+        xi = np.arctan(y / x)
+        eta = np.arctan(-z / x)
 
     elif -y >= np.abs(x) and -y >= np.abs(z):
         # West  patch (IV)
         patch = 3
-        xi = np.arctan2(-x, y)
-        eta = np.arctan2(-z, y)
+        xi = np.arctan(-x / y)
+        eta = np.arctan(-z / y)
 
     elif z >= np.abs(x) and z >= np.abs(y):
         # North patch (V)
         patch = 4
-        xi = np.arctan2(y, z)
-        eta = np.arctan2(-x, z)
+        xi = np.arctan(y / z)
+        eta = np.arctan(-x / z)
 
     elif -z >= np.abs(x) and -z >= np.abs(y):
         # South patch (VI)
         patch = 5
-        xi = np.arctan2(-y, z)
-        eta = np.arctan2(-x, z)
+        xi = np.arctan(-y / z)
+        eta = np.arctan(-x / z)
 
     else:
         raise ArithmeticError("Should never happen")
