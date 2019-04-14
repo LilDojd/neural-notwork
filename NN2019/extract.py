@@ -150,8 +150,6 @@ def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
                 charge = nonbonded_force.getParticleParameters(index)[0].value_in_unit(simtk.unit.elementary_charge)
                 features[index] = tuple([mass, charge, atom.name, residue.index] + position)
 
-                residue_index_local = residue.index - chain_start_index
-
     if cut:
         features = cut_active_center(features)
 
@@ -360,7 +358,6 @@ if __name__ == '__main__':
     if args.mode == "extract":
         pdb_filenames = glob.glob(os.path.join(args.pdb_input_dir, "*.pdb"))
         to_pass = checkpoint()
-        print(to_pass)
         if to_pass:
             pdb_filenames = [pdb for pdb in pdb_filenames if pdb not in to_pass]
         joblib.Parallel(n_jobs=args.n_proc, batch_size=1)(
