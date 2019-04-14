@@ -151,7 +151,6 @@ def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
                 features[index] = tuple([mass, charge, atom.name, residue.index] + position)
 
                 residue_index_local = residue.index - chain_start_index
-                assert (residue.name == sequence[i][residue_index_local])
 
     if cut:
         features = cut_active_center(features)
