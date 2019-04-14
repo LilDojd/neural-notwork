@@ -39,7 +39,6 @@ class ProteinData:
     def __init__(self, protein_feature_filename, key_filter=None):
         """Constructor"""
 
-        print(key_filter)
         if key_filter is None:
             key_filter = []
         self.features = {}
@@ -265,6 +264,7 @@ class BatchFactory:
                             pdb_id, os.path.basename(grid_feature_filename)[0:5]))
 
             # Create feature data
+            print(grid_feature_names)
             if grid_feature_filename is not None:
                 protein_data = ProteinGridData(protein_feature_filename, grid_feature_filename, duplicate_origin)
             else:
