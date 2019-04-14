@@ -13,13 +13,14 @@
 # limitations under the License.
 # =============================================================================
 
-import Deepfold.Ops as Ops
 import tensorflow as tf
 
+import Ops
 from .BaseModel import BaseModel
 
 
 class CubedSphereBaseModel(BaseModel):
+
     @staticmethod
     def create_cubed_sphere_conv_layer(index,
                                        input,
@@ -125,7 +126,7 @@ class CubedSphereBaseModel(BaseModel):
             conv_r = tf.stack(convs_patches, axis=1, name="cubed_sphere_conv_%d_r%d" % (index, i))
             convs_r.append(conv_r)
 
-        conv = tf.concat(convs_r, axis=2, name="cubed_sphere_conv%d" % (index))
+        conv = tf.concat(convs_r, axis=2, name="cubed_sphere_conv%d" % index)
 
         return {'conv': conv}
 
@@ -149,6 +150,6 @@ class CubedSphereBaseModel(BaseModel):
                                                    ksize=[1, ksize_r, ksize_xi, ksize_eta, 1],
                                                    strides=[1, stride_r, stride_xi, stride_eta, 1],
                                                    padding=padding,
-                                                   name="cubed_sphere_pool%d" % (index))
+                                                   name="cubed_sphere_pool%d" % index)
 
         return {'pool': pool}

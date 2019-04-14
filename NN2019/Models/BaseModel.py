@@ -18,7 +18,8 @@ from functools import reduce
 
 import numpy as np
 import tensorflow as tf
-from Deepfold.batch_factory import get_batch
+
+from batch_factory import get_batch
 
 
 class BaseModel:
@@ -70,7 +71,7 @@ class BaseModel:
             size = int(np.prod(layers[-1][name].get_shape()))
 
         print("layer %2d (high res) - %10s: %s [size %s]" % (
-        len(layers), name, layers[idx][name].get_shape(), "{:,}".format(size)))
+            len(layers), name, layers[idx][name].get_shape(), "{:,}".format(size)))
 
     @staticmethod
     def create_dense_layer(index,
@@ -118,11 +119,11 @@ class BaseModel:
 
                     grid_matrix = batch["high_res"]
 
-                    labels = batch["model_output"]
+                    labes = batch["model_output"]
 
                     for sub_iteration, (index, length) in enumerate(
                             zip(np.cumsum(gradient_batch_sizes) - gradient_batch_sizes, gradient_batch_sizes)):
-                        grid_matrix_batch, labels_batch = get_batch(index, index + length, grid_matrix, labels)
+                        grid_matrix_batch, labels_batch = get_batch(index, index + length, grid_matrix, labes)
 
                         feed_dict = dict({self.x_high_res: grid_matrix_batch,
                                           self.y: labels_batch,
@@ -135,7 +136,7 @@ class BaseModel:
                     if (iteration + 1) % output_interval == 0:
                         Q_training_batch, loss_training_batch = self.Q_accuracy_and_loss(batch, gradient_batch_sizes)
                         print("[%d, %d] Q%s score (training batch) = %f" % (
-                        i, iteration, self.output_size, Q_training_batch))
+                            i, iteration, self.output_size, Q_training_batch))
                         print("[%d, %d] loss (training batch) = %f" % (i, iteration, loss_training_batch))
 
                         validation_batch, validation_gradient_batch_sizes = validation_batch_factory.next(

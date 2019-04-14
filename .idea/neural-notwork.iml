@@ -5,6 +5,8 @@
       <sourceFolder url="file://$MODULE_DIR$/NN2019/Grids" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/NN2019/Models" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/NN2019" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/NN2019/Ops" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/NN2019/Utils" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/NIPS2017" />
     </content>
     <orderEntry type="inheritedJdk" />

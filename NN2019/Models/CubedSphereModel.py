@@ -168,6 +168,5 @@ class CubedSphereModel(CubedSphereBaseModel):
                                                        output_size=output_size))
         self.layers[-1]['activation'] = tf.nn.softmax(self.layers[-1]['dense'])
 
-        # Поменять на ничто
         self.print_layer(self.layers, -1, 'W')
         self.print_layer(self.layers, -1, 'activation')
