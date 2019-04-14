@@ -251,16 +251,16 @@ class BatchFactory:
                 sorted(protein_feature_names, key=lambda x: x if x is not None else "ZZZ"),
                 sorted(grid_feature_names, key=lambda x: x if x is not None else "ZZZ")):
 
-            pdb_id = os.path.basename(protein_feature_filename)[0:5]
+            pdb_id = "_".join(os.path.basename(protein_feature_filename).split('_')[0:2])
 
             # Check whether different datasets refer to the same PDB entry
             if grid_feature_filename is not None:
                 # Test that protein and residue data files have the same pdb_id prefix
-                if pdb_id != os.path.basename(grid_feature_filename)[0:5]:
+                if pdb_id != "_".join(os.path.basename(grid_feature_filename).split('_')[0:2]):
                     raise ValueError(
                         "%s != %s: Mismatch in protein and residue"
                         " feature filenames (one of them is probably missing)" % (
-                            pdb_id, os.path.basename(grid_feature_filename)[0:5]))
+                            pdb_id, "_".join(os.path.basename(grid_feature_filename).split('_')[0:2])))
 
             # Create feature data
             if grid_feature_filename is not None:
