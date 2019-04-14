@@ -360,6 +360,7 @@ if __name__ == '__main__':
     if args.mode == "extract":
         pdb_filenames = glob.glob(os.path.join(args.pdb_input_dir, "*.pdb"))
         to_pass = checkpoint()
+        print(to_pass)
         if to_pass:
             pdb_filenames = [pdb for pdb in pdb_filenames if pdb not in to_pass]
         joblib.Parallel(n_jobs=args.n_proc, batch_size=1)(
