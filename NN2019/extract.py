@@ -70,9 +70,8 @@ def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
     first_model = structure.get_list()[0]
     sequence = []
     try:
-        energy_class = int(csv_df.loc[str(pdb_id)][2])
-        energy_val = int(csv_df.loc[str(pdb_id)][1])
-        energy = [energy_class, energy_val]
+        en_class = int(csv_df.loc[str(pdb_id)][2])
+        en_val = int(csv_df.loc[str(pdb_id)][1])
     except KeyError:
         print(f"No energy value for {pdb_id}")
         return
@@ -162,7 +161,7 @@ def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
     charges_array = structured_to_unstructured(features[['charge']], dtype=np.float32)
     res_index_array = structured_to_unstructured(features[['res_index']], dtype=int)
 
-    return pdb_towrite, features, masses_array, charges_array, aa_one_hot, energy, res_index_array, chain_boundary_indices, chain_ids
+    return pdb_towrite, features, masses_array, charges_array, aa_one_hot, en_class, en_val, res_index_array, chain_boundary_indices, chain_ids
 
 
 def embed_in_grid(features, pdb_id, output_dir,
@@ -276,7 +275,8 @@ def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstr
     # Extract basic atom features (mass, charge, etc)
     info = extract_mass_charge(pdb_filename, csv_df=en_df, smooth=smooth)
     if info:
-        [pdb_id, features, masses_array, charges_array, aa_one_hot, energy, residue_index_array, chain_boundary_indices,
+        [pdb_id, features, masses_array, charges_array, aa_one_hot, en_class, en_val, residue_index_array,
+         chain_boundary_indices,
          chain_ids] = info
 
         # Save protein level features
@@ -290,7 +290,8 @@ def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstr
                                 "masses", "charges"],
                             chain_boundary_indices=chain_boundary_indices,
                             chain_ids=chain_ids,
-                            energy=energy,
+                            en_class=en_class,
+                            en_val=en_val,
                             aa_one_hot=aa_one_hot,
                             coordinate_system=np.array(coor_sys.value, dtype=np.int32),
                             max_radius=np.array(max_radius, dtype=np.float32),  # angstrom

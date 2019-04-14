@@ -47,8 +47,8 @@ if __name__ == '__main__':
                         help="Whether to read model from checkpoint")
     parser.add_argument("--mode", choices=['train', 'test'], default="train",
                         help="Mode of operation (default: %(default)s)")
-    parser.add_argument("--model-output-type", choices=['aa', 'ss'], default="ss",
-                        help="Whether the model should output secondary structure or amino acid labels (default: %(default)s)")
+    parser.add_argument("--model-output-type", choices=['en_class', 'en_val'], default="en_class",
+                        help="Whether the model should output dG value or classification labels (default: %(default)s)")
     parser.add_argument("--dropout-keep-prob", type=float, default=0.5,
                         help="Probability for leaving out node in dropout (default: %(default)s)")
     parser.add_argument("--learning-rate",
@@ -92,7 +92,7 @@ if __name__ == '__main__':
                                    high_res_grid_feature_filenames[:train_end])
         batch_factory.add_data_set("model_output",
                                    high_res_protein_feature_filenames[:train_end],
-                                   key_filter=[options.model_output_type + "_one_hot"])
+                                   key_filter=[options.model_output_type])
 
         validation_batch_factory = BatchFactory()
         validation_batch_factory.add_data_set("high_res",
@@ -100,7 +100,7 @@ if __name__ == '__main__':
                                               high_res_grid_feature_filenames[validation_start:validation_end])
         validation_batch_factory.add_data_set("model_output",
                                               high_res_protein_feature_filenames[validation_start:validation_end],
-                                              key_filter=[options.model_output_type + "_one_hot"])
+                                              key_filter=[options.model_output_type])
     elif options.mode == 'test':
         batch_factory = BatchFactory()
         batch_factory.add_data_set("high_res",
@@ -108,7 +108,7 @@ if __name__ == '__main__':
                                    high_res_grid_feature_filenames[test_start:])
         batch_factory.add_data_set("model_output",
                                    high_res_protein_feature_filenames[test_start:],
-                                   key_filter=[options.model_output_type + "_one_hot"])
+                                   key_filter=[options.model_output_type])
     else:
         raise KeyError("Invalid mode")
     high_res_grid_size = batch_factory.next(1, increment_counter=False)[0]["high_res"].shape
