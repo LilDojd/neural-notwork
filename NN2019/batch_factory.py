@@ -51,6 +51,7 @@ class ProteinData:
         selected_feature_keys = []
         self.dimensions = 0
         for key in list(protein_loader.keys()):
+            print(key)
             value = protein_loader[key]
             # Scalars are dealt with separately
             if len(value.shape) == 0:
