@@ -76,6 +76,7 @@ class ProteinData:
                 chain_values += [chain_ids[chain_index]] * length
             self.features["chain_ids"] = np.array(chain_values, dtype='a5')
 
+        print(len(selected_feature_keys))
         if len(selected_feature_keys) > 0:
             print("HERE")
             self.selected_features = self.features[selected_feature_keys[0]]
