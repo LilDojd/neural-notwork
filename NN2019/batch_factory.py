@@ -76,7 +76,6 @@ class ProteinData:
                 chain_values += [chain_ids[chain_index]] * length
             self.features["chain_ids"] = np.array(chain_values, dtype='a5')
 
-        print(len(selected_feature_keys))
         if len(selected_feature_keys) > 0:
             self.selected_features = self.features[selected_feature_keys[0]]
         for key in range(1, len(selected_feature_keys)):
@@ -264,7 +263,6 @@ class BatchFactory:
                             pdb_id, os.path.basename(grid_feature_filename)[0:5]))
 
             # Create feature data
-            print(grid_feature_names)
             if grid_feature_filename is not None:
                 protein_data = ProteinGridData(protein_feature_filename, grid_feature_filename, duplicate_origin)
             else:
