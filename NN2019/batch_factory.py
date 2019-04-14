@@ -51,7 +51,6 @@ class ProteinData:
         selected_feature_keys = []
         self.dimensions = 0
         for key in list(protein_loader.keys()):
-            print(key)
             value = protein_loader[key]
             # Scalars are dealt with separately
             if len(value.shape) == 0:
@@ -78,7 +77,9 @@ class ProteinData:
             self.features["chain_ids"] = np.array(chain_values, dtype='a5')
 
         if len(selected_feature_keys) > 0:
+            print("HERE")
             self.selected_features = self.features[selected_feature_keys[0]]
+            print(self.selected_features)
         for key in range(1, len(selected_feature_keys)):
             self.selected_features = np.vstack([self.selected_features,
                                                 self.features[selected_feature_keys[key]]])
