@@ -71,7 +71,7 @@ def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
     sequence = []
     try:
         en_class = int(csv_df.loc[str(pdb_id)][2])
-        en_val = int(csv_df.loc[str(pdb_id)][1])
+        en_val = np.float32(csv_df.loc[str(pdb_id)][1])
     except KeyError:
         print(f"No energy value for {pdb_id}")
         return

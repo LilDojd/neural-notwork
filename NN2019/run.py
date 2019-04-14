@@ -111,6 +111,7 @@ if __name__ == '__main__':
                                    key_filter=[options.model_output_type])
     else:
         raise KeyError("Invalid mode")
+
     high_res_grid_size = batch_factory.next(1, increment_counter=False)[0]["high_res"].shape
     output_size = batch_factory.next(1, increment_counter=False)[0]["model_output"].shape[1]
 

@@ -53,7 +53,7 @@ class ProteinData:
         for key in list(protein_loader.keys()):
             value = protein_loader[key]
             # Scalars are dealt with separately
-            if len(value.shape) == 0:
+            if len(value.shape) == 0 and key not in ['en_class', 'en_val']:
                 value = value.item()
             else:
                 if key in key_filter:
@@ -104,6 +104,7 @@ class ProteinGridData(ProteinData):
 
     def __init__(self, protein_feature_filename, grid_feature_filename, max_sequence_distance=15,
                  duplicate_origin=False):
+
         """Constructor"""
 
         ProteinData.__init__(self, protein_feature_filename)
@@ -225,10 +226,10 @@ class BatchFactory:
     def __init__(self):
         """Constructor"""
 
-        # pdb_id -> ProteinData map 
+        # pdb_id -> ProteinData map
         self.features = {}
 
-        # List of (pdb_ids, res_index) pairs 
+        # List of (pdb_ids, res_index) pairs
         self.features_expanded = []
 
         # Current index into features_expanded list
@@ -248,8 +249,8 @@ class BatchFactory:
             grid_feature_names = [None] * len(protein_feature_names)
 
         for protein_feature_filename, grid_feature_filename in zip(
-                sorted(protein_feature_names, key=lambda x: x if x is not None else "ZZZ"),
-                sorted(grid_feature_names, key=lambda x: x if x is not None else "ZZZ")):
+                sorted(protein_feature_names, key=lambda x: x if x is not None else "999ZZZ"),
+                sorted(grid_feature_names, key=lambda x: x if x is not None else "999ZZZ")):
 
             pdb_id = "_".join(os.path.basename(protein_feature_filename).split('_')[0:2])
 
