@@ -13,9 +13,9 @@
 # limitations under the License.
 # =============================================================================
 
-import Deepfold.Ops as Ops
 import tensorflow as tf
 
+import Ops
 from .BaseModel import BaseModel
 
 
