@@ -39,6 +39,7 @@ class ProteinData:
     def __init__(self, protein_feature_filename, key_filter=None):
         """Constructor"""
 
+        print(key_filter)
         if key_filter is None:
             key_filter = []
         self.features = {}
@@ -78,9 +79,7 @@ class ProteinData:
 
         print(len(selected_feature_keys))
         if len(selected_feature_keys) > 0:
-            print("HERE")
             self.selected_features = self.features[selected_feature_keys[0]]
-            print(self.selected_features)
         for key in range(1, len(selected_feature_keys)):
             self.selected_features = np.vstack([self.selected_features,
                                                 self.features[selected_feature_keys[key]]])
@@ -442,7 +441,7 @@ if __name__ == '__main__':
     ###
     batch_factory.add_data_set("model_output",
                                protein_feature_filenames[:train_end],
-                               key_filter=["energy_class"])
+                               key_filter=["en_class"])
 
     # Read out total data size
     total_data_size = batch_factory.data_size()
