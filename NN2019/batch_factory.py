@@ -14,6 +14,7 @@
 # =============================================================================
 
 
+import os
 import random
 
 import numpy as np
@@ -407,7 +408,6 @@ if __name__ == '__main__':
 
     from argparse import ArgumentParser
     import glob
-    import os
 
     # Command line arguments
     parser = ArgumentParser()
