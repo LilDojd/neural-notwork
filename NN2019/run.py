@@ -113,7 +113,7 @@ if __name__ == '__main__':
         raise KeyError("Invalid mode")
 
     high_res_grid_size = batch_factory.next(1, increment_counter=False)[0]["high_res"].shape
-    output_size = batch_factory.next(1, increment_counter=False)[0]["model_output"].shape[1]
+    output_size = batch_factory.next(1, increment_counter=False)[0]["model_output"].shape[0]
 
     if options.model.startswith("Spherical"):
         model = models[options.model](r_size_high_res=high_res_grid_size[1],
