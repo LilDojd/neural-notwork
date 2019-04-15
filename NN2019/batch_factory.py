@@ -78,11 +78,9 @@ class ProteinData:
 
         if len(selected_feature_keys) > 0:
             self.selected_features = self.features[selected_feature_keys[0]]
-            print(self.selected_features)
         for key in range(1, len(selected_feature_keys)):
             self.selected_features = np.vstack([self.selected_features,
                                                 self.features[selected_feature_keys[key]]])
-        print(self.selected_features)
 
     def initialize_residue_features(self, size):
         """Initialize grid array"""
@@ -168,8 +166,8 @@ class ProteinGridData(ProteinData):
 
         # Extract information for the current residue index
         selector = self.selector_array[self.selector_array >= 0]
-
         # Extract data on which grid indices to set
+
         indices = self.indices_array[self.indices_array[:, 0] >= 0]
 
         # Create grid
@@ -181,13 +179,13 @@ class ProteinGridData(ProteinData):
         for feature_name in self.features["residue_features"]:
 
             if feature_name == "residue_index":
-                chain_index = np.searchsorted(self.features["chain_boundary_indices"], side='right') - 1
+                chain_index = np.searchsorted(self.features["chain_boundary_indices"], residue_index, side='right') - 1
 
                 chain_selector = np.logical_and(
                     self.features[feature_name] >= self.features["chain_boundary_indices"][chain_index],
                     self.features[feature_name] < self.features["chain_boundary_indices"][chain_index + 1])
 
-                full_feature = self.features[feature_name]
+                full_feature = self.features[feature_name] - residue_index
                 full_feature = np.clip(full_feature, -self.max_sequence_distance, self.max_sequence_distance)
                 full_feature[np.logical_not(chain_selector)] = self.max_sequence_distance
 
@@ -372,7 +370,6 @@ class BatchFactory:
 
                 # Pre-fetch residue features
                 self.features[pdb_id][key].fetch_residue_features()
-
                 # Get residue features
                 residue_features_value = self.features[pdb_id][key].get_residue_features()
                 if residue_features[key][num].dtype is not residue_features_value.dtype:
