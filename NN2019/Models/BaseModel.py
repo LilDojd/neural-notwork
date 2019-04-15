@@ -22,6 +22,11 @@ import tensorflow as tf
 from batch_factory import get_batch
 
 
+config = tf.ConfigProto(allow_soft_placement=True)
+config.gpu_options.allocator_type = 'BFC'
+config.gpu_options.per_process_gpu_memory_fraction = 0.90
+
+
 class BaseModel:
     """Base model with training and testing procedures"""
 
