@@ -78,10 +78,11 @@ class ProteinData:
 
         if len(selected_feature_keys) > 0:
             self.selected_features = self.features[selected_feature_keys[0]]
+            print(self.selected_features)
         for key in range(1, len(selected_feature_keys)):
             self.selected_features = np.vstack([self.selected_features,
                                                 self.features[selected_feature_keys[key]]])
-
+        print(self.selected_features)
     def initialize_residue_features(self, size):
         """Initialize grid array"""
         return np.zeros([size] + list(self.selected_features.shape[1:]))
@@ -95,8 +96,8 @@ class ProteinData:
     def forget_residue_features(self):
         pass
 
-    def get_residue_features(self):
-        return self.selected_features
+    def get_residue_features(self, residue_index):
+        return self.selected_features[residue_index]
 
 
 class ProteinGridData(ProteinData):
@@ -154,7 +155,7 @@ class ProteinGridData(ProteinData):
         self.selector_array = None
         self.indices_array = None
 
-    def get_residue_features(self):
+    def get_residue_features(self, residue_index):
         """Construct grid matrix from residue features"""
 
         # If selector_array has not been set, we fetch it here, but remember
@@ -165,10 +166,10 @@ class ProteinGridData(ProteinData):
             fetch_temporarily = True
 
         # Extract information for the current residue index
-        selector = self.selector_array[self.selector_array >= 0]
-        # Extract data on which grid indices to set
+        selector = self.selector_array[residue_index][self.selector_array[residue_index] >= 0]
 
-        indices = self.indices_array[self.indices_array[:, 0] >= 0]
+        # Extract data on which grid indices to set
+        indices = self.indices_array[residue_index][self.indices_array[residue_index][:, 0] >= 0]
 
         # Create grid
         grid_mat = grids.create_grid_map[self.coordinate_system](max_radius=self.features["max_radius"],
@@ -204,7 +205,7 @@ class ProteinGridData(ProteinData):
                 grid_mat[[slice(None)] * (grid_mat.ndim - 1) + [
                     slice(start_index, end_index)]] = self.max_sequence_distance + 1
 
-            grid_mat[tuple(list(indices.T) + [slice(start_index, end_index)])] = feature
+            grid_mat[list(indices.T) + [slice(start_index, end_index)]] = feature
 
             start_index += feature.shape[1]
 
@@ -370,8 +371,9 @@ class BatchFactory:
 
                 # Pre-fetch residue features
                 self.features[pdb_id][key].fetch_residue_features()
+
                 # Get residue features
-                residue_features_value = self.features[pdb_id][key].get_residue_features()
+                residue_features_value = self.features[pdb_id][key].get_residue_features(residue_index)
                 if residue_features[key][num].dtype is not residue_features_value.dtype:
                     residue_features[key] = residue_features[key].astype(residue_features_value.dtype)
                 residue_features[key][num] = residue_features_value
