@@ -12,3 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+from conv import conv_spherical, avg_pool_spherical, conv_spherical_cubed_sphere, avg_pool_spherical_cubed_sphere
+from pad_cubed_sphere import pad_cubed_sphere_grid
