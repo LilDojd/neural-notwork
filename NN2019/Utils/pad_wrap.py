@@ -19,7 +19,6 @@ import numpy as np
 import tensorflow as tf
 
 __all__ = ['pad_wrap']
-
 _DummyArray = collections.namedtuple("_DummyArray", ["ndim"])
 
 
