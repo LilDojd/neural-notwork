@@ -37,7 +37,7 @@ class BaseModel:
         self._init_model(*args, **kwargs)
 
         # Set loss function
-        self.entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.layers[-1]['dense'], labels=self.y)
+        self.entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.layers[-1]['dense'], labels=self.y)
         self.regularization = tf.add_n(
             [tf.nn.l2_loss(v) for v in tf.trainable_variables() if not v.name.startswith("b")]) * reg_fact
 
