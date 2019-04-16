@@ -243,9 +243,9 @@ def cartesian_to_cubed_sphere(x, y, z, rtol=1e-05):
         raise ArithmeticError("Should never happen")
 
     if xi >= np.pi / 4:
-        print(xi)
+        xi -= 0.000000000000001
     if eta >= np.pi / 4:
-        print(eta)
+        eta -= 0.000000000000001
 
     return patch, r, xi, eta
 
