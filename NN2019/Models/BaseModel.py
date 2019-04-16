@@ -131,9 +131,8 @@ class BaseModel:
                         grid_matrix_batch, labels_batch = get_batch(index, index + length, grid_matrix, labes)
 
                         feed_dict = dict({self.x_high_res: grid_matrix_batch,
-                                          self.y: labels_batch,
+                                          self.y: labels_batch.reshape(1, 1),
                                           self.dropout_keep_prob: dropout_keep_prob})
-                        print(grid_matrix_batch.shape)
 
                         _, loss_value = self.session.run([self.train_step, self.loss], feed_dict=feed_dict)
 
