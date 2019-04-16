@@ -129,7 +129,6 @@ class BaseModel:
                     for sub_iteration, (index, length) in enumerate(
                             zip(np.cumsum(gradient_batch_sizes) - gradient_batch_sizes, gradient_batch_sizes)):
                         grid_matrix_batch, labels_batch = get_batch(index, index + length, grid_matrix, labes)
-                        labels_batch = np.reshape(labels_batch, (labels_batch.size, 1))
 
                         feed_dict = dict({self.x_high_res: grid_matrix_batch,
                                           self.y: labels_batch,
@@ -197,7 +196,6 @@ class BaseModel:
 
             if include_output:
                 labels_batch, = get_batch(index, index + length, labels)
-                labels_batch = np.reshape(labels_batch, (labels_batch.size, 1))
                 feed_dict[self.y] = labels_batch
 
             results.append(self.session.run(var, feed_dict=feed_dict))
