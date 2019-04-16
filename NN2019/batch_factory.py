@@ -81,8 +81,7 @@ class ProteinData:
         for key in range(1, len(selected_feature_keys)):
             self.selected_features = np.vstack([self.selected_features,
                                                 self.features[selected_feature_keys[key]]])
-
-        print(self.selected_features)
+            print(self.selected_features)
 
     def initialize_residue_features(self, size):
         """Initialize grid array"""
