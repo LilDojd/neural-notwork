@@ -16,7 +16,7 @@
 import tensorflow as tf
 import Ops as Ops
 
-from . import BaseModel
+from .BaseModel import BaseModel
 
 
 class CubedSphereBaseModel(BaseModel):
