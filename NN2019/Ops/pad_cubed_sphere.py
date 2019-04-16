@@ -59,7 +59,7 @@ def pad_cubed_sphere_grid(tensor, r_padding=(0, 0), xi_padding=(0, 0), eta_paddi
     padded_tensor = tf.concat([wrap_chunk0, tensor, wrap_chunk1], axis=3)
 
     # Pad eta bottom (0) and top (1)
-    wrap_chunk0 = tf.stack([tensor[:, 5, :, :, -eta_padding[0]:, :],  # Patch 0
+    wrap_chunk0 = tf.stack([tensor[:, 5, :, :, -eta_padding[0]:, :],    # Patch 0
                             tf.reverse(tensorT[:, 5, :, :, -eta_padding[0]:, :], axis=[2]),  # Patch 1
                             tf.reverse(tensor[:, 5, :, :, :eta_padding[0], :], axis=[2, 3]),  # Patch 2
                             tf.reverse(tensorT[:, 5, :, :, :eta_padding[0], :], axis=[3]),  # Patch 3

@@ -15,7 +15,7 @@
 
 import tensorflow as tf
 
-from .CubedSphereBaseModel import CubedSphereBaseModel
+from CubedSphereBaseModel import CubedSphereBaseModel
 
 
 class CubedSphereModel(CubedSphereBaseModel):
@@ -167,6 +167,5 @@ class CubedSphereModel(CubedSphereBaseModel):
                                                        self.layers[-2]['dropout'],
                                                        output_size=output_size))
         self.layers[-1]['activation'] = tf.nn.softmax(self.layers[-1]['dense'])
-
         self.print_layer(self.layers, -1, 'W')
         self.print_layer(self.layers, -1, 'activation')

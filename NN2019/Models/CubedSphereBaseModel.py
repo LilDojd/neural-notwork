@@ -14,13 +14,12 @@
 # =============================================================================
 
 import tensorflow as tf
+import Ops as Ops
 
-import Ops
-from .BaseModel import BaseModel
+from BaseModel import BaseModel
 
 
 class CubedSphereBaseModel(BaseModel):
-
     @staticmethod
     def create_cubed_sphere_conv_layer(index,
                                        input,
@@ -46,7 +45,7 @@ class CubedSphereBaseModel(BaseModel):
                                                filter=W,
                                                strides=[1, stride_r, stride_xi, stride_eta, 1],
                                                padding=padding,
-                                               name="cubed_sphere_conv%d" % index)
+                                               name="cubed_sphere_conv%d" % (index))
 
         output = tf.nn.bias_add(conv, b)
 
@@ -106,7 +105,7 @@ class CubedSphereBaseModel(BaseModel):
 
         for i in range(0, padded_input.shape[2] - ksize_r + 1, window_stride_r):
 
-            padded_input_r_band = padded_input[:, :, i:i + window_size_r, :, :, :]
+            padded_input_r_band = padded_input[:, :, i:i+window_size_r, :, :, :]
 
             filter_shape = [ksize_r, ksize_xi, ksize_eta, padded_input_r_band.get_shape().as_list()[-1], channels_out]
             W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W_%d_r%d" % (index, i))

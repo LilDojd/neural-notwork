@@ -14,9 +14,8 @@
 # =============================================================================
 
 import tensorflow as tf
-
+import pad_cubed_sphere
 from Utils.pad_wrap import pad_wrap
-from . import pad_cubed_sphere
 
 
 def conv_spherical(input, filter, strides, padding, name=None):
@@ -63,7 +62,7 @@ def conv_spherical(input, filter, strides, padding, name=None):
     # Pad input with periodic image in phi
     padded_input = pad_wrap(padded_input,
                             [(0, 0), (0, 0), (0, 0),
-                             (filter_size_phi // 2, filter_size_phi // 2),
+                             (filter_size_phi / 2, filter_size_phi / 2),
                              (0, 0)])
 
     return tf.nn.conv3d(padded_input,
@@ -88,6 +87,8 @@ def avg_pool_spherical(value, ksize, strides, padding, name=None):
         padding: A `string` from: `"SAME", "VALID"`.
             The type of padding algorithm to use for the radial and polar dimensions.
             Note that the azimuthal dimension will always use periodic padding.
+        name: A name for the operation (optional).
+
     Returns:
         A `Tensor`. Has the same type as `input`.
     """
@@ -112,6 +113,7 @@ def avg_pool_spherical(value, ksize, strides, padding, name=None):
                             ksize=ksize,
                             strides=strides,
                             padding='VALID')
+
 
 
 def conv_spherical_cubed_sphere(input, filter, strides, padding, name=None):
@@ -148,7 +150,7 @@ def conv_spherical_cubed_sphere(input, filter, strides, padding, name=None):
 
     filter_size_r, filter_size_xi, filter_size_eta = filter.shape.as_list()[:3]
 
-    radial_padding_size = (0, 0)
+    radial_padding_size = (0,0)
     if padding == "SAME":
         radial_padding_size = (filter_size_r // 2, filter_size_r // 2)
 
@@ -193,7 +195,7 @@ def avg_pool_spherical_cubed_sphere(value, ksize, strides, padding, name=None):
 
     ksize_r, ksize_xi, ksize_eta = ksize[1:4]
 
-    radial_padding_size = (0, 0)
+    radial_padding_size = (0,0)
     if padding == "SAME":
         radial_padding_size = (ksize_r // 2, ksize_r // 2)
 
