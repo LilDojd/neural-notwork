@@ -133,7 +133,7 @@ class BaseModel:
                         feed_dict = dict({self.x_high_res: grid_matrix_batch,
                                           self.y: labels_batch,
                                           self.dropout_keep_prob: dropout_keep_prob})
-
+                        print(feed_dict)
                         _, loss_value = self.session.run([self.train_step, self.loss], feed_dict=feed_dict)
 
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
