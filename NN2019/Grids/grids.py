@@ -247,8 +247,6 @@ def cartesian_to_cubed_sphere(x, y, z, rtol=1e-05):
     if eta >= np.pi / 4:
         print(eta)
 
-    print(xi, eta, "all")
-
     return patch, r, xi, eta
 
 
