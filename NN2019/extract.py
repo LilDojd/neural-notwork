@@ -222,9 +222,12 @@ def embed_in_grid(features, pdb_id, output_dir,
 
         # Merge bin indices into one array
         indices = np.vstack((patch_bin, r_bin, xi_bin, eta_bin)).transpose()
-        print(xi_bin[np.where(xi_bin >= grid_matrix.shape[2])])
-        print(xi_bin[np.where(eta_bin >= grid_matrix.shape[3])])
+        print(indices[np.where(xi_bin >= grid_matrix.shape[2])])
+        print(indices[np.where(eta_bin >= grid_matrix.shape[3])])
+
         # Assert that bins are sensible
+        assert (not np.any(xi_bin >= grid_matrix.shape[2]))
+        assert (not np.any(eta_bin >= grid_matrix.shape[3]))
 
     elif coord_sys == grids.CoordinateSystem.cartesian:
 
