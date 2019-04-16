@@ -29,6 +29,7 @@ def get_batch(start_index, end_index, *values):
         if value is None:
             values_batch.append(None)
         else:
+            print(start_index, end_index)
             values_batch.append(value[start_index:end_index])
     return values_batch
 
