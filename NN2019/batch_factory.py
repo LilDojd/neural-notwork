@@ -287,7 +287,7 @@ class BatchFactory:
         # Repopulate self.features_expanded
         self.features_expanded = []
         for pdb_id in feature_pdb_ids:
-            self.features_expanded += tuple([pdb_id, 0])
+            self.features_expanded.append(tuple([pdb_id, 0]))
         print(self.features_expanded)
         # Reset index counter
         self.feature_index = 0
@@ -394,7 +394,6 @@ class BatchFactory:
         if self.feature_index >= len(self.features_expanded):
             self.epoch_count += 1
             self.shuffle_features()
-        print(self.features_expanded)
         # Make sure that feature_index is correctly set to zero if running on the complete se.
         if max_size == len(self.features_expanded) and not return_single_proteins:
             assert (self.feature_index == 0)
