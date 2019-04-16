@@ -214,7 +214,8 @@ class BaseModel:
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
         predictions = np.argmax(y_, 1)
         identical = (predictions == y_argmax)
-
+        print(y, "FEATS")
+        print(y_, entropies)
         Q_accuracy = np.mean(identical)
 
         regularization = self.session.run(self.regularization, feed_dict={})

@@ -288,7 +288,6 @@ class BatchFactory:
         self.features_expanded = []
         for pdb_id in feature_pdb_ids:
             self.features_expanded.append(tuple([pdb_id, 0]))
-        print(self.features_expanded)
         # Reset index counter
         self.feature_index = 0
 
