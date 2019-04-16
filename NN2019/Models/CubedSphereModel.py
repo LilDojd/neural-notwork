@@ -165,7 +165,7 @@ class CubedSphereModel(CubedSphereBaseModel):
         self.layers.append({})
         self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
                                                        self.layers[-2]['dropout'],
-                                                       output_size=3))
+                                                       output_size=output_size))
         self.layers[-1]['activation'] = tf.nn.softmax(self.layers[-1]['dense'])
 
         self.print_layer(self.layers, -1, 'W')
