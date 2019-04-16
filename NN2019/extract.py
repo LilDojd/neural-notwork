@@ -213,8 +213,6 @@ def embed_in_grid(features, pdb_id, output_dir,
         # Create grid
         grid_matrix = grids.create_cubed_sphere_grid(max_radius=max_radius, n_features=n_feats,
                                                      bins_per_angstrom=bins_per_angstrom)
-        print(grid_matrix.shape)
-
         # Bin each dimension independently
         patch_bin, r_bin, xi_bin, eta_bin = grids.discretize_into_cubed_sphere_bins(patch, r, xi, eta,
                                                                                     max_radius,
@@ -227,8 +225,6 @@ def embed_in_grid(features, pdb_id, output_dir,
         print(xi_bin[np.where(xi_bin >= grid_matrix.shape[2])])
         print(xi_bin[np.where(eta_bin >= grid_matrix.shape[3])])
         # Assert that bins are sensible
-        assert (not np.any(xi_bin >= grid_matrix.shape[2]))
-        assert (not np.any(eta_bin >= grid_matrix.shape[3]))
 
     elif coord_sys == grids.CoordinateSystem.cartesian:
 
