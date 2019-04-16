@@ -210,7 +210,7 @@ class ProteinGridData(ProteinData):
 
         # Forget residue features again, if necessary
         if fetch_temporarily:
-            self.forget_grid_features()
+            self.forget_residue_features()
 
         return grid_mat
 

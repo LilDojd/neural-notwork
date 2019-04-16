@@ -123,7 +123,6 @@ class BaseModel:
                     more_data = (train_batch_factory.feature_index != 0)
 
                     grid_matrix = batch["high_res"]
-                    print(grid_matrix.shape)
 
                     labes = batch["model_output"]
 
@@ -215,6 +214,7 @@ class BaseModel:
                               include_output=True)
 
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
+        print(y_)
         predictions = np.argmax(y_, 1)
         identical = (predictions == y_argmax)
 
