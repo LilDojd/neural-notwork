@@ -129,9 +129,10 @@ class BaseModel:
                     for sub_iteration, (index, length) in enumerate(
                             zip(np.cumsum(gradient_batch_sizes) - gradient_batch_sizes, gradient_batch_sizes)):
                         grid_matrix_batch, labels_batch = get_batch(index, index + length, grid_matrix, labes)
+                        labels_batch = np.atleast_2d(labels_batch)
 
                         feed_dict = dict({self.x_high_res: grid_matrix_batch,
-                                          self.y: labels_batch.reshape(1, 1),
+                                          self.y: labels_batch,
                                           self.dropout_keep_prob: dropout_keep_prob})
 
                         _, loss_value = self.session.run([self.train_step, self.loss], feed_dict=feed_dict)
