@@ -55,7 +55,7 @@ def cut_active_center(feats, cent=center, rad=12):
     return new_features
 
 
-def extract_mass_charge(pdb_filename, csv_df, cut=True, smooth=True, n_bins=4):
+def extract_mass_charge(pdb_filename, csv_df, cut=False, smooth=True, n_bins=4):
     """Extract protein-level features from pdb file"""
 
     pdb_id = os.path.basename(pdb_filename).split('_')[1]
@@ -265,7 +265,7 @@ def embed_in_grid(features, pdb_id, output_dir,
 
 
 def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstrom,
-                               add_seq_distance_feature, output_dir, coor_sys, en_df, smooth):
+                               add_seq_distance_feature, output_dir, coor_sys, en_df, smooth, cut):
     """
     Creates both atom-level and residue-level (grid) features from a pdb file
     """
@@ -273,7 +273,7 @@ def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstr
     print(pdb_filename)
 
     # Extract basic atom features (mass, charge, etc)
-    info = extract_mass_charge(pdb_filename, csv_df=en_df, smooth=smooth)
+    info = extract_mass_charge(pdb_filename, csv_df=en_df, cut=cut, smooth=smooth)
     if info:
         [pdb_id, features, masses_array, charges_array, aa_one_hot, en_class, en_val, residue_index_array,
          chain_boundary_indices,
@@ -340,7 +340,8 @@ if __name__ == '__main__':
                         help="Add the sequence distance as a feature  (default: %(default)s)")
     parser.add_argument("--apply-smoothing", metavar="VAL", type=str2bool, default=False,
                         help="Choose wether atoms should be smoothed (default: %(default)s)")
-
+    parser.add_argument("--apply-cut", metavar="VAL", type=str2bool, default=False,
+                        help="Choose wether atoms should be cut within 12 A (default: %(default)s)")
     args = parser.parse_args()
 
     print("# Arguments")
@@ -369,7 +370,7 @@ if __name__ == '__main__':
                                                        args.add_seq_distance_feature,
                                                        args.output_dir,
                                                        coor_sys=coordinate_system,
-                                                       en_df=en_table, smooth=args.apply_smoothing) for pdb_filename in
+                                                       en_df=en_table, smooth=args.apply_smoothing, cut=args.apply_cut) for pdb_filename in
             pdb_filenames)
     else:
         raise argparse.ArgumentTypeError("Unknown mode")
