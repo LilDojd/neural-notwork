@@ -70,8 +70,6 @@ class SphericalModel(SphericalBaseModel):
                                                                 stride_phi=1,
                                                                 padding='VALID'))
         self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'])
-        print("HERE")
-        print(self.layers, len(self.layers[-1]))
         self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
                                                                    self.layers[-1]['activation'],
                                                                    ksize=[1, 3, 3, 3, 1],

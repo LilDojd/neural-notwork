@@ -57,7 +57,7 @@ if __name__ == '__main__':
                         help="Regularisation factor (default: %(default)s)", type=float, default=0.001)
     parser.add_argument("--output-interval",
                         help="The output interval for train and validation error  (default: %(default)s)", type=int,
-                        default=None)
+                        default=20)
     parser.add_argument("--model", choices=list(models.keys()), required=True,
                         help="Which model definition to use (default: %(default)s)")
     parser.add_argument("--step", type=int, default=None,

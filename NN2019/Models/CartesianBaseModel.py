@@ -14,7 +14,7 @@
 # =============================================================================
 
 import tensorflow as tf
-
+from math import ceil
 from .BaseModel import BaseModel
 
 
