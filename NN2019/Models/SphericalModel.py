@@ -73,7 +73,7 @@ class SphericalModel(SphericalBaseModel):
         self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
                                                                    self.layers[-1]['activation'],
                                                                    ksize=[1, 3, 3, 3, 1],
-                                                                   strides=[1, 2, 1, 2, 1]))
+                                                                   strides=[1, 2, 2, 2, 1]))
         self.print_layer(self.layers, -1, 'activation')
         self.print_layer(self.layers, -1, 'pool')
 

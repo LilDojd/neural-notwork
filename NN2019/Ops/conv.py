@@ -108,10 +108,6 @@ def avg_pool_spherical(value, ksize, strides, padding, name=None):
     # Pad input with periodic image in phi
     padded_input = pad_wrap(value, [(0, 0), (0, 0), (0, 0),
                                     (ksize_phi // 2, ksize_phi // 2), (0, 0)])
-    print(value)
-    print(padded_input)
-    print(ksize)
-    print(strides)
     return tf.nn.avg_pool3d(padded_input,
                             ksize=ksize,
                             strides=strides,
