@@ -197,7 +197,10 @@ class BaseModel:
 
             if include_output:
                 labels_batch, = get_batch(index, index + length, labels)
-                feed_dict[self.y] = np.reshape(labels_batch, (labels_batch.size, 1))
+                print(labels_batch)
+                labels_batch = np.reshape(labels_batch, (labels_batch.size, 1))
+                print(labels_batch.shape)
+                feed_dict[self.y] = labels_batch
 
             results.append(self.session.run(var, feed_dict=feed_dict))
 
