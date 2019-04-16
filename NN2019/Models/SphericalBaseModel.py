@@ -44,12 +44,12 @@ class SphericalBaseModel(BaseModel):
                         channels_out]
         W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W_%d" % index)
         b = tf.Variable(tf.truncated_normal(filter_shape[-1:], stddev=0.1), name="bias_%d" % index)
-
+        print(input)
         conv = Ops.conv_spherical(input=input,
                                   filter=W,
                                   strides=[1, stride_r, stride_theta, stride_phi, 1],
                                   padding=padding,
-                                  name="conv_%d" % (index))
+                                  name="conv_%d" % index)
 
         output = tf.nn.bias_add(conv, b)
 
