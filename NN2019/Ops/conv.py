@@ -14,7 +14,7 @@
 # =============================================================================
 
 import tensorflow as tf
-import pad_cubed_sphere
+from . import pad_cubed_sphere
 from Utils.pad_wrap import pad_wrap
 
 
