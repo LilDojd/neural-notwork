@@ -92,7 +92,6 @@ def pad_wrap(array, pad_width):
     """
     Modified from numpy.lib.arraypad.wrap
     """
-
     if not np.asarray(pad_width).dtype.kind == 'i':
         raise TypeError('`pad_width` must be of integral type.')
 

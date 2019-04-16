@@ -51,7 +51,7 @@ def conv_spherical(input, filter, strides, padding, name=None):
     filter_size_r, filter_size_theta, filter_size_phi = filter.shape.as_list()[:3]
 
     # Standard wrapping in r and theta dimensions
-    padded_input = input
+    padded_input = input.astype(int)
     if padding == "SAME":
         padded_input = tf.pad(input,
                               [(0, 0),
