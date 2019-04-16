@@ -134,7 +134,7 @@ class BaseModel:
                                           self.y: labels_batch,
                                           self.dropout_keep_prob: dropout_keep_prob})
 
-                        print()
+                        print(labels_batch)
 
                         _, loss_value = self.session.run([self.train_step, self.loss], feed_dict=feed_dict)
 
