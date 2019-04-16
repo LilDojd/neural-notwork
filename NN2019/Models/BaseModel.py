@@ -15,7 +15,6 @@
 
 import os
 from functools import reduce
-
 import numpy as np
 import tensorflow as tf
 
@@ -209,13 +208,11 @@ class BaseModel:
     def Q_accuracy_and_loss(self, batch, gradient_batch_sizes, return_raw=False):
         y = batch["model_output"]
         y_argmax = np.argmax(y, 1)
-        results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['activation'], self.entropy],
+        results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['dense'], self.entropy],
                               include_output=True)
-        print(results)
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
         predictions = np.argmax(y_, 1)
         identical = (predictions == y_argmax)
-        print(y_argmax, predictions)
         Q_accuracy = np.mean(identical)
 
         regularization = self.session.run(self.regularization, feed_dict={})
