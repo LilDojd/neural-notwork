@@ -108,12 +108,12 @@ def avg_pool_spherical(value, ksize, strides, padding, name=None):
     # Pad input with periodic image in phi
     padded_input = pad_wrap(value, [(0, 0), (0, 0), (0, 0),
                                     (ksize_phi // 2, ksize_phi // 2), (0, 0)])
-
+    print(input)
+    print(padded_input)
     return tf.nn.avg_pool3d(padded_input,
                             ksize=ksize,
                             strides=strides,
                             padding='VALID')
-
 
 
 def conv_spherical_cubed_sphere(input, filter, strides, padding, name=None):
@@ -165,7 +165,7 @@ def conv_spherical_cubed_sphere(input, filter, strides, padding, name=None):
                          filter,
                          strides=strides,
                          padding="VALID",
-                         name=name + ("_p%d" % (patch))))
+                         name=name + ("_p%d" % patch)))
 
     conv = tf.stack(convs, axis=1, name=name)
 
