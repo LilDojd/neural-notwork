@@ -29,7 +29,6 @@ def get_batch(start_index, end_index, *values):
         if value is None:
             values_batch.append(None)
         else:
-            print(start_index, end_index)
             values_batch.append(value[start_index:end_index])
     return values_batch
 
@@ -398,7 +397,7 @@ class BatchFactory:
         if max_size == len(self.features_expanded) and not return_single_proteins:
             assert (self.feature_index == 0)
 
-        return residue_features, subbatch_sizes
+        return residue_features, subbatch_sizes.astype(int)
 
 
 if __name__ == '__main__':

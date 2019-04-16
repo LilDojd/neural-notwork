@@ -179,7 +179,6 @@ if __name__ == '__main__':
                                                        include_pdb_ids=True,
                                                        return_single_proteins=True)
             more_data = (batch_factory.feature_index != 0)
-            print(batch, subbatch_sizes)
             loss, identical, entropies, regularization = model.Q_accuracy_and_loss(batch, subbatch_sizes,
                                                                                    return_raw=True)
 
