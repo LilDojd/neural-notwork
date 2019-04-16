@@ -202,8 +202,8 @@ def embed_in_grid(features, pdb_id, output_dir,
         indices = np.vstack((r_bin, theta_bin, phi_bin)).transpose()
 
         # Check that bin indices are within grid
-        assert (not np.any(theta_bin > grid_matrix.shape[1]))
-        assert (not np.any(phi_bin > grid_matrix.shape[2]))
+        assert (not np.any(theta_bin >= grid_matrix.shape[1]))
+        assert (not np.any(phi_bin >= grid_matrix.shape[2]))
 
     elif coord_sys == grids.CoordinateSystem.cubed_sphere:
 
@@ -213,6 +213,7 @@ def embed_in_grid(features, pdb_id, output_dir,
         # Create grid
         grid_matrix = grids.create_cubed_sphere_grid(max_radius=max_radius, n_features=n_feats,
                                                      bins_per_angstrom=bins_per_angstrom)
+        print(grid_matrix.shape)
 
         # Bin each dimension independently
         patch_bin, r_bin, xi_bin, eta_bin = grids.discretize_into_cubed_sphere_bins(patch, r, xi, eta,
@@ -223,7 +224,8 @@ def embed_in_grid(features, pdb_id, output_dir,
 
         # Merge bin indices into one array
         indices = np.vstack((patch_bin, r_bin, xi_bin, eta_bin)).transpose()
-
+        print(xi_bin[np.where(xi_bin >= grid_matrix.shape[2])])
+        print(xi_bin[np.where(eta_bin >= grid_matrix.shape[3])])
         # Assert that bins are sensible
         assert (not np.any(xi_bin >= grid_matrix.shape[2]))
         assert (not np.any(eta_bin >= grid_matrix.shape[3]))

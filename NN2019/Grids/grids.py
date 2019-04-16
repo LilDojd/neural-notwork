@@ -50,7 +50,6 @@ def create_cubed_sphere_grid(max_radius, n_features, bins_per_angstrom):
     """Creates cubed sphere grid"""
 
     grid_matrix = np.zeros(shape=get_cubed_sphere_grid_shape(max_radius, n_features, bins_per_angstrom))
-
     return grid_matrix
 
 
