@@ -123,6 +123,7 @@ class BaseModel:
                     more_data = (train_batch_factory.feature_index != 0)
 
                     grid_matrix = batch["high_res"]
+                    print(grid_matrix[np.where(grid_matrix > 0)])
 
                     labes = batch["model_output"]
 
@@ -133,7 +134,7 @@ class BaseModel:
                         feed_dict = dict({self.x_high_res: grid_matrix_batch,
                                           self.y: labels_batch,
                                           self.dropout_keep_prob: dropout_keep_prob})
-                        print(feed_dict)
+
                         _, loss_value = self.session.run([self.train_step, self.loss], feed_dict=feed_dict)
 
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
