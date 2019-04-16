@@ -342,7 +342,7 @@ class BatchFactory:
                 subbatch_size_array = np.array([max_size // n_subbatches] * n_subbatches)
                 remainder = max_size % n_subbatches
                 subbatch_size_array[np.arange(remainder)] += 1
-                subbatch_sizes = subbatch_size_array
+                subbatch_sizes = subbatch_size_array.astype(int)
             assert (np.sum(subbatch_sizes) == size)
 
         residue_features = None
@@ -397,7 +397,7 @@ class BatchFactory:
         if max_size == len(self.features_expanded) and not return_single_proteins:
             assert (self.feature_index == 0)
 
-        return residue_features, subbatch_sizes.astype(int)
+        return residue_features, subbatch_sizes
 
 
 if __name__ == '__main__':
