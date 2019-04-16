@@ -284,12 +284,11 @@ class BatchFactory:
         # Randomize order
         feature_pdb_ids = list(self.features.keys())
         random.shuffle(feature_pdb_ids)
-
+        print(self.features_expanded)
         # Repopulate self.features_expanded
         self.features_expanded = []
         for pdb_id in feature_pdb_ids:
             n_residues = len(list(self.features[pdb_id].values())[0])
-            print(n_residues)
             self.features_expanded += list(zip([pdb_id] * n_residues, list(range(n_residues))))
 
         # Reset index counter
