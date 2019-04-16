@@ -15,7 +15,7 @@
 
 import tensorflow as tf
 
-from CubedSphereBaseModel import CubedSphereBaseModel
+from .CubedSphereBaseModel import CubedSphereBaseModel
 
 
 class CubedSphereModel(CubedSphereBaseModel):
