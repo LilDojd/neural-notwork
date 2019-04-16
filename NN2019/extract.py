@@ -76,6 +76,11 @@ def extract_mass_charge(pdb_filename, csv_df, cut=False, smooth=True, n_bins=4):
         print(f"No energy value for {pdb_id}")
         return
 
+    en_one_hot = np.zeros((1, 3))
+    en_one_hot[0, en_class + 1] = 1
+    en_class = en_one_hot
+    # Energy class one-hot
+
     aa_one_hot = []
     chain_ids = []
     for i, chain in enumerate(first_model):

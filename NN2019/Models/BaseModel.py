@@ -197,9 +197,7 @@ class BaseModel:
 
             if include_output:
                 labels_batch, = get_batch(index, index + length, labels)
-                print(labels_batch)
                 labels_batch = np.reshape(labels_batch, (labels_batch.size, 1))
-                print(labels_batch.shape)
                 feed_dict[self.y] = labels_batch
 
             results.append(self.session.run(var, feed_dict=feed_dict))
@@ -213,15 +211,11 @@ class BaseModel:
     def Q_accuracy_and_loss(self, batch, gradient_batch_sizes, return_raw=False):
         y = batch["model_output"]
         print(y)
-        try:
-            y_argmax = np.argmax(y, 1)
-        except:
-            y_argmax = 1
+        y_argmax = np.argmax(y, 1)
         results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['dense'], self.entropy],
                               include_output=True)
 
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
-        print(y_)
         predictions = np.argmax(y_, 1)
         identical = (predictions == y_argmax)
 
