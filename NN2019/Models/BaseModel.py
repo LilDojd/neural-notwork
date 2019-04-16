@@ -211,10 +211,12 @@ class BaseModel:
         y_argmax = np.argmax(y, 1)
         results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['activation'], self.entropy],
                               include_output=True)
-        print(results)
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
         predictions = np.argmax(y_, 1)
         identical = (predictions == y_argmax)
+        print(entropies)
+        print(y_)
+        print(y_argmax, predictions)
 
         Q_accuracy = np.mean(identical)
 
