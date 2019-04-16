@@ -458,4 +458,3 @@ if __name__ == '__main__':
 
             print(grid_matrix.shape)
             print(labels.shape)
-            print(labels)
