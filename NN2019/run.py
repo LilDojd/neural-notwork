@@ -178,6 +178,7 @@ if __name__ == '__main__':
                                                        enforce_protein_boundaries=True,
                                                        include_pdb_ids=True,
                                                        return_single_proteins=True)
+            subbatch_sizes = subbatch_sizes.astype(np.int32)
             more_data = (batch_factory.feature_index != 0)
             loss, identical, entropies, regularization = model.Q_accuracy_and_loss(batch, subbatch_sizes,
                                                                                    return_raw=True)
