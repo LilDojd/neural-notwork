@@ -62,7 +62,7 @@ def conv_spherical(input, filter, strides, padding, name=None):
     # Pad input with periodic image in phi
     padded_input = pad_wrap(padded_input,
                             [(0, 0), (0, 0), (0, 0),
-                             (filter_size_phi / 2, filter_size_phi / 2),
+                             (filter_size_phi // 2, filter_size_phi // 2),
                              (0, 0)])
 
     return tf.nn.conv3d(padded_input,
