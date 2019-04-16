@@ -290,6 +290,7 @@ class BatchFactory:
         for pdb_id in feature_pdb_ids:
             n_residues = len(list(self.features[pdb_id].values())[0])
             self.features_expanded += list(zip([pdb_id] * n_residues, list(range(n_residues))))
+        print(self.features_expanded)
 
         # Reset index counter
         self.feature_index = 0
