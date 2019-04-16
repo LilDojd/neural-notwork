@@ -25,7 +25,6 @@ class SphericalBaseModel(BaseModel):
                                        input,
                                        ksize,
                                        strides):
-        print(index, input, ksize, strides)
         pool = Ops.avg_pool_spherical(input, ksize, strides, padding='VALID', name="spherical_avg_pool%d" % index)
 
         return {'pool': pool}
