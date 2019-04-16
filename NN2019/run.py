@@ -112,10 +112,11 @@ if __name__ == '__main__':
     else:
         raise KeyError("Invalid mode")
 
-    high_res_grid_size = batch_factory.next(1, increment_counter=False)[0]["high_res"].shape
+    holder = batch_factory.next(1, increment_counter=False)
+    high_res_grid_size = holder[0]["high_res"].shape
     print(high_res_grid_size)
-    output_size = batch_factory.next(1, increment_counter=False)[1]
-    print(output_size)
+    print(holder[1])
+    output_size = batch_factory.next(1, increment_counter=False)[0]["model_output"].shape[0]
 
     if options.model.startswith("Spherical"):
         model = models[options.model](r_size_high_res=high_res_grid_size[1],
