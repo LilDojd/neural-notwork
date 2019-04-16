@@ -123,8 +123,7 @@ class BaseModel:
                     more_data = (train_batch_factory.feature_index != 0)
 
                     grid_matrix = batch["high_res"]
-                    print(grid_matrix)
-                    print(grid_matrix[np.where(grid_matrix > 0)].size)
+                    print(grid_matrix.shape)
 
                     labes = batch["model_output"]
 
