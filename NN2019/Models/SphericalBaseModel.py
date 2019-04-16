@@ -25,6 +25,7 @@ class SphericalBaseModel(BaseModel):
                                        input,
                                        ksize,
                                        strides):
+        print(index, input, ksize, strides)
         pool = Ops.avg_pool_spherical(input, ksize, strides, padding='VALID', name="spherical_avg_pool%d" % index)
 
         return {'pool': pool}
@@ -40,12 +41,7 @@ class SphericalBaseModel(BaseModel):
                                     stride_theta=1,
                                     stride_phi=1,
                                     padding='VALID'):
-        print(index,
-              input,
-              window_size_r,
-              window_size_theta,
-              window_size_phi,
-              channels_out, )
+
         filter_shape = [window_size_r, window_size_theta, window_size_phi, input.get_shape().as_list()[-1],
                         channels_out]
         W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W_%d" % index)
