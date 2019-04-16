@@ -222,8 +222,6 @@ def embed_in_grid(features, pdb_id, output_dir,
 
         # Merge bin indices into one array
         indices = np.vstack((patch_bin, r_bin, xi_bin, eta_bin)).transpose()
-        print(indices[np.where(xi_bin >= grid_matrix.shape[2])], grid_matrix.shape)
-        print(indices[np.where(eta_bin >= grid_matrix.shape[3])])
 
         # Assert that bins are sensible
         assert (not np.any(xi_bin >= grid_matrix.shape[2]))

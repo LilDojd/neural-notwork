@@ -239,6 +239,9 @@ def cartesian_to_cubed_sphere(x, y, z, rtol=1e-05):
         xi = np.arctan(-y / z)
         eta = np.arctan(-x / z)
 
+    if xi > np.pi / 4:
+        print(xi)
+
     else:
         raise ArithmeticError("Should never happen")
 
