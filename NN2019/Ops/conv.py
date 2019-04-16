@@ -73,7 +73,7 @@ def conv_spherical(input, filter, strides, padding, name=None):
                         name=name)
 
 
-def avg_pool_spherical(value, ksize, strides, padding):
+def avg_pool_spherical(value, ksize, strides, padding, name=None):
     r"""Performs average pooling of the input, using spherical coordinates.
 
     Args:
