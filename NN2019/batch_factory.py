@@ -82,6 +82,8 @@ class ProteinData:
             self.selected_features = np.vstack([self.selected_features,
                                                 self.features[selected_feature_keys[key]]])
 
+        print(self.selected_features)
+
     def initialize_residue_features(self, size):
         """Initialize grid array"""
         return np.zeros([size] + list(self.selected_features.shape[1:]))
@@ -401,6 +403,7 @@ class BatchFactory:
         if max_size == len(self.features_expanded) and not return_single_proteins:
             assert (self.feature_index == 0)
 
+        print(residue_features)
         return residue_features, subbatch_sizes
 
 
