@@ -214,7 +214,6 @@ class BaseModel:
         predictions = np.argmax(y_, 1)
         identical = (predictions == y_argmax)
         Q_accuracy = np.mean(identical)
-        print("Predictions:", np.vstack((y_argmax, predictions)))
 
         regularization = self.session.run(self.regularization, feed_dict={})
         loss = np.mean(entropies) + regularization
