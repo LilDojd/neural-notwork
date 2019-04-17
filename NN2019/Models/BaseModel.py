@@ -154,7 +154,7 @@ class BaseModel:
                             "[%d, %d] Report%s (validation set):" % (i, iteration, self.output_size))
                         Q_validation, loss_validation = self.F_score_and_loss(validation_batch,
                                                                               validation_gradient_batch_sizes)
-                        print("SCORE VALIDATION:", Q_training_batch)
+                        print("SCORE VALIDATION:", Q_validation)
                         print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
 
                         self.save(self.model_checkpoint_path, iteration)
