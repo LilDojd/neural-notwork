@@ -143,6 +143,7 @@ class BaseModel:
                         print("[%d, %d] Report%s (training batch):" % (
                             i, iteration, self.output_size))
                         Q_training_batch, loss_training_batch = self.F_score_and_loss(batch, gradient_batch_sizes)
+                        print("SCORE TRAINING:", Q_training_batch)
                         print("[%d, %d] loss (training batch) = %f" % (i, iteration, loss_training_batch))
 
                         validation_batch, validation_gradient_batch_sizes = validation_batch_factory.next(
@@ -153,6 +154,7 @@ class BaseModel:
                             "[%d, %d] Report%s (validation set):" % (i, iteration, self.output_size))
                         Q_validation, loss_validation = self.F_score_and_loss(validation_batch,
                                                                               validation_gradient_batch_sizes)
+                        print("SCORE VALIDATION:", Q_training_batch)
                         print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
 
                         self.save(self.model_checkpoint_path, iteration)
@@ -207,7 +209,7 @@ class BaseModel:
         results = self._infer(batch, gradient_batch_sizes, var=self.layers[-1]['activation'], include_output=False)
         return np.concatenate(results)
 
-    def F_score_and_loss(self, batch, gradient_batch_sizes, return_raw=False):
+    def F_score_and_loss(self, batch, gradient_batch_sizes, return_raw=False, return_Q=True):
         y = batch["model_output"]
         y_argmax = np.argmax(y, 1)
         results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['dense'], self.entropy],
@@ -218,12 +220,14 @@ class BaseModel:
         identical = (predictions == y_argmax)
         Q_accuracy = np.mean(identical)
         print(np.vstack((y_argmax, predictions)))
-        print(report(y_argmax, predictions, target_names=['Worse', 'Same', 'Better']))
+        F_score = report(y_argmax, predictions, target_names=['Worse', 'Same', 'Better'])
 
         regularization = self.session.run(self.regularization, feed_dict={})
         loss = np.mean(entropies) + regularization
 
         if return_raw:
             return loss, identical, entropies, regularization
-        else:
+        elif return_Q:
             return Q_accuracy, loss
+        elif not return_Q:
+            return F_score, loss
