@@ -17,7 +17,7 @@ import os
 from functools import reduce
 import numpy as np
 import tensorflow as tf
-from sklearn.metrics import precision_recall_fscore_support as score
+from sklearn.metrics import classification_report as report
 
 from batch_factory import get_batch
 
@@ -138,19 +138,20 @@ class BaseModel:
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
 
                     if (iteration + 1) % output_interval == 0:
+
+                        print("[%d, %d] Report%s (training batch):" % (
+                            i, iteration, self.output_size))
                         Q_training_batch, loss_training_batch = self.F_score_and_loss(batch, gradient_batch_sizes)
-                        print("[%d, %d] F%s score (training batch) = %f" % (
-                            i, iteration, self.output_size, Q_training_batch))
                         print("[%d, %d] loss (training batch) = %f" % (i, iteration, loss_training_batch))
 
                         validation_batch, validation_gradient_batch_sizes = validation_batch_factory.next(
                             validation_batch_factory.data_size(),
                             subbatch_max_size=subbatch_max_size,
                             enforce_protein_boundaries=False)
+                        print(
+                            "[%d, %d] Report%s (validation set):" % (i, iteration, self.output_size))
                         Q_validation, loss_validation = self.F_score_and_loss(validation_batch,
                                                                               validation_gradient_batch_sizes)
-                        print(
-                            "[%d, %d] F%s score (validation set) = %f" % (i, iteration, self.output_size, Q_validation))
                         print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
 
                         self.save(self.model_checkpoint_path, iteration)
@@ -213,14 +214,10 @@ class BaseModel:
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
         predictions = np.argmax(y_, 1)
 
-        precision, recall, fscore, support = score(y_argmax, predictions, average='weighted')
-        print('Precision: {}'.format(precision))
-        print('Recall: {}'.format(recall))
-        print('Fscore: {}'.format(fscore))
-        print('Support: {}'.format(support))
         identical = (predictions == y_argmax)
         Q_accuracy = np.mean(identical)
 
+        print(report(y_argmax, predictions, target_names=['Worse', 'Same', 'Better']))
         regularization = self.session.run(self.regularization, feed_dict={})
         loss = np.mean(entropies) + regularization
 
