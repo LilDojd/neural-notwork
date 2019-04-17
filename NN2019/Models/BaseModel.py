@@ -41,7 +41,7 @@ class BaseModel:
         self._init_model(*args, **kwargs)
 
         # Set weighted loss function (weight is hardcoded)
-        logits = tf.multiply(self.layers[-1]['dense'], tf.constant([0.05, 0.15, 0.7]))
+        logits = tf.multiply(self.layers[-1]['dense'], tf.constant([0.02, 0.2, 0.7]))
         self.entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=self.y)
         self.regularization = tf.add_n(
             [tf.nn.l2_loss(v) for v in tf.trainable_variables() if not v.name.startswith("b")]) * reg_fact
@@ -56,7 +56,7 @@ class BaseModel:
             self.loss)
 
         # Session and saver
-        self.saver = tf.train.Saver(max_to_keep=max_to_keep)
+        self.saver = tf.train.Saver(max_to_keep=5)
         self.session = tf.Session()
 
         # Initialize variables
@@ -219,6 +219,7 @@ class BaseModel:
         Q_accuracy = np.mean(identical)
 
         print(report(y_argmax, predictions, target_names=['Worse', 'Same', 'Better']))
+        print(np.vstack(y_argmax, predictions))
         regularization = self.session.run(self.regularization, feed_dict={})
         loss = np.mean(entropies) + regularization
 
