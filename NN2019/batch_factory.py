@@ -206,6 +206,7 @@ class ProteinGridData(ProteinData):
 
             grid_mat[tuple(list(indices.T) + [slice(start_index, end_index)])] = feature
             # ???
+            print(grid_mat)
 
             start_index += feature.shape[1]
 

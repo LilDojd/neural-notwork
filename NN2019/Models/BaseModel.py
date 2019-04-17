@@ -217,9 +217,9 @@ class BaseModel:
 
         identical = (predictions == y_argmax)
         Q_accuracy = np.mean(identical)
-
-        print(report(y_argmax, predictions, target_names=['Worse', 'Same', 'Better']))
         print(np.vstack((y_argmax, predictions)))
+        print(report(y_argmax, predictions, target_names=['Worse', 'Same', 'Better']))
+
         regularization = self.session.run(self.regularization, feed_dict={})
         loss = np.mean(entropies) + regularization
 
