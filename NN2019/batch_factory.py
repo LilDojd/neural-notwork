@@ -205,6 +205,7 @@ class ProteinGridData(ProteinData):
                     slice(start_index, end_index)]] = self.max_sequence_distance + 1
 
             grid_mat[tuple(list(indices.T) + [slice(start_index, end_index)])] = feature
+            # ???
 
             start_index += feature.shape[1]
 
