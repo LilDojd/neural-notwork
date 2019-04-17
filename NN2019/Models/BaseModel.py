@@ -231,3 +231,6 @@ class BaseModel:
             return Q_accuracy, loss
         elif not return_Q:
             return F_score, loss
+
+        writer = tf.summary.FileWriter("/home/domain/yawner/2019/log/1")
+        writer.add_graph(self.session.graph)
