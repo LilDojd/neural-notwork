@@ -41,7 +41,7 @@ class BaseModel:
         self._init_model(*args, **kwargs)
 
         # Set weighted loss function (weight is hardcoded)
-        logits = tf.multiply(self.layers[-1]['dense'], tf.constant([0.02, 0.28, 0.7]))
+        logits = tf.multiply(self.layers[-1]['dense'], tf.constant([0.9, 0.06, 0.04]))
         self.entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=self.y)
         self.regularization = tf.add_n(
             [tf.nn.l2_loss(v) for v in tf.trainable_variables() if not v.name.startswith("b")]) * reg_fact
