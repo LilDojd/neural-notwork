@@ -56,7 +56,7 @@ class BaseModel:
             self.loss)
 
         # Session and saver
-        self.saver = tf.train.Saver(max_to_keep)
+        self.saver = tf.train.Saver(max_to_keep=max_to_keep)
         self.session = tf.Session()
 
         # Initialize variables
