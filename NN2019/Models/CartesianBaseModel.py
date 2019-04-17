@@ -33,7 +33,7 @@ class CartesianBaseModel(BaseModel):
                             use_padding=True):
         if use_padding:
             input = tf.pad(input,
-                           [(0, 0), (ksize_x / 2, ksize_x / 2), (ksize_y / 2, ksize_y / 2), (ksize_z / 2, ksize_z / 2),
+                           [(0, 0), (ceil(ksize_x / 2), ceil(ksize_x / 2)), (ceil(ksize_y / 2), ceil(ksize_y / 2)), (ceil(ksize_z / 2), ceil(ksize_z / 2)),
                             (0, 0)], "CONSTANT")
 
         filter_shape = [ksize_x, ksize_y, ksize_z, input.get_shape().as_list()[-1], channels_out]
@@ -63,7 +63,7 @@ class CartesianBaseModel(BaseModel):
 
         if use_padding:
             input = tf.pad(input,
-                           [(0, 0), (ksize_x / 2, ksize_x / 2), (ksize_y / 2, ksize_y / 2), (ksize_z / 2, ksize_z / 2),
+                           [(0, 0), (ceil(ksize_x / 2), ceil(ksize_x / 2)), (ceil(ksize_y / 2), ceil(ksize_y / 2)), (ceil(ksize_z / 2), ceil(ksize_z / 2)),
                             (0, 0)], "CONSTANT")
 
         pool = tf.nn.avg_pool3d(input,

@@ -8,7 +8,8 @@ def create_batch(pdb_ids, csv_df):
     en_class = [int(csv_df.loc[str(i)][2]) if any(csv_df[csv_df.iloc[:, 0].str.contains(i)]) else None for i in pdb_raws]
     dataframe = pd.DataFrame(list(zip(pdb_ids, en_class)), columns=['PDBID', 'EN_CLASS'])
     melted = pd.melt(dataframe, value_vars=['EN_CLASS'], var_name='en_class', value_name='val')
-    print(melted.groupby(by=['en_class', 'val'])['val'].count())
+    count = melted.groupby(by=['en_class', 'val'])['val'].count()
+    
 
 
 if __name__ == '__main__':
