@@ -282,7 +282,7 @@ def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstr
         [pdb_id, features, masses_array, charges_array, aa_one_hot, en_class, en_val, residue_index_array,
          chain_boundary_indices,
          chain_ids] = info
-
+        print(pdb_filename, en_class)
         # Save protein level features
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
