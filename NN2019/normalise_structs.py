@@ -37,8 +37,7 @@ if __name__ == '__main__':
     pdb_filenames = glob.glob(os.path.join(args.pdb_input_dir, "*.pdb"))
     en_table = pd.read_csv(args.energy_csv, index_col=0, header=None)
     pdbs = create_batch(pdb_filenames, en_table)
-    print(pdbs)
-    map(lambda x: copyfile(f"{args.pdb_input_dir}{x}", args.output_dir), pdbs)
+    map(lambda x: copyfile(x, args.output_dir), pdbs)
 
 
 
