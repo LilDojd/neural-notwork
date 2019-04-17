@@ -56,7 +56,7 @@ class BaseModel:
             self.loss)
 
         # Session and saver
-        self.saver = tf.train.Saver(max_to_keep=5)
+        self.saver = tf.train.Saver(max_to_keep)
         self.session = tf.Session()
 
         # Initialize variables
@@ -219,7 +219,7 @@ class BaseModel:
         Q_accuracy = np.mean(identical)
 
         print(report(y_argmax, predictions, target_names=['Worse', 'Same', 'Better']))
-        print(np.vstack(y_argmax, predictions))
+        print(np.vstack((y_argmax, predictions)))
         regularization = self.session.run(self.regularization, feed_dict={})
         loss = np.mean(entropies) + regularization
 
