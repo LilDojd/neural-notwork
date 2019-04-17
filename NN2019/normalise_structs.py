@@ -39,7 +39,7 @@ if __name__ == '__main__':
     pdbs = create_batch(pdb_filenames, en_table)
     for pdb in pdbs:
         print("...")
-        copyfile(pdb, args.output_dir)
+        copyfile(pdb, f"{args.output_dir}{os.path.basename(pdb)}")
     print("DONE")
 
 
