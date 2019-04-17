@@ -274,8 +274,6 @@ def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstr
     Creates both atom-level and residue-level (grid) features from a pdb file
     """
 
-    print(pdb_filename)
-
     # Extract basic atom features (mass, charge, etc)
     info = extract_mass_charge(pdb_filename, csv_df=en_df, cut=cut, smooth=smooth)
     if info:
