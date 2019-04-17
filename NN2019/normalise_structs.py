@@ -38,7 +38,9 @@ if __name__ == '__main__':
     en_table = pd.read_csv(args.energy_csv, index_col=0, header=None)
     pdbs = create_batch(pdb_filenames, en_table)
     for pdb in pdbs:
+        print("...")
         copyfile(pdb, args.output_dir)
+    print("DONE")
 
 
 
