@@ -17,9 +17,9 @@ import os
 from functools import reduce
 import numpy as np
 import tensorflow as tf
+from sklearn.metrics import precision_recall_fscore_support as score
 
 from batch_factory import get_batch
-
 
 config = tf.ConfigProto(allow_soft_placement=True)
 config.gpu_options.allocator_type = 'BFC'
@@ -138,8 +138,8 @@ class BaseModel:
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
 
                     if (iteration + 1) % output_interval == 0:
-                        Q_training_batch, loss_training_batch = self.Q_accuracy_and_loss(batch, gradient_batch_sizes)
-                        print("[%d, %d] Q%s score (training batch) = %f" % (
+                        Q_training_batch, loss_training_batch = self.F_score_and_loss(batch, gradient_batch_sizes)
+                        print("[%d, %d] F%s score (training batch) = %f" % (
                             i, iteration, self.output_size, Q_training_batch))
                         print("[%d, %d] loss (training batch) = %f" % (i, iteration, loss_training_batch))
 
@@ -147,10 +147,10 @@ class BaseModel:
                             validation_batch_factory.data_size(),
                             subbatch_max_size=subbatch_max_size,
                             enforce_protein_boundaries=False)
-                        Q_validation, loss_validation = self.Q_accuracy_and_loss(validation_batch,
-                                                                                 validation_gradient_batch_sizes)
+                        Q_validation, loss_validation = self.F_score_and_loss(validation_batch,
+                                                                              validation_gradient_batch_sizes)
                         print(
-                            "[%d, %d] Q%s score (validation set) = %f" % (i, iteration, self.output_size, Q_validation))
+                            "[%d, %d] F%s score (validation set) = %f" % (i, iteration, self.output_size, Q_validation))
                         print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
 
                         self.save(self.model_checkpoint_path, iteration)
@@ -205,13 +205,19 @@ class BaseModel:
         results = self._infer(batch, gradient_batch_sizes, var=self.layers[-1]['activation'], include_output=False)
         return np.concatenate(results)
 
-    def Q_accuracy_and_loss(self, batch, gradient_batch_sizes, return_raw=False):
+    def F_score_and_loss(self, batch, gradient_batch_sizes, return_raw=False):
         y = batch["model_output"]
         y_argmax = np.argmax(y, 1)
         results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['dense'], self.entropy],
                               include_output=True)
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
         predictions = np.argmax(y_, 1)
+
+        precision, recall, fscore, support = score(y_argmax, predictions, average='weighted')
+        print('Precision: {}'.format(precision))
+        print('Recall: {}'.format(recall))
+        print('Fscore: {}'.format(fscore))
+        print('Support: {}'.format(support))
         identical = (predictions == y_argmax)
         Q_accuracy = np.mean(identical)
 
