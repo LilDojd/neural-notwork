@@ -7,6 +7,12 @@
       <sourceFolder url="file://$MODULE_DIR$/NN2019" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/NN2019/Ops" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/NN2019/Utils" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/NN2019Continious" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/NN2019Continious/Grids" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/NN2019Continious/Models" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/NN2019Continious/Ops" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/NN2019Continious/output" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/NN2019Continious/Utils" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/NIPS2017" />
     </content>
     <orderEntry type="inheritedJdk" />

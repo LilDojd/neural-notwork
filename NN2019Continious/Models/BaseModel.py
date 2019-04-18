@@ -59,12 +59,12 @@ class BaseModel:
         self.saver = tf.train.Saver(max_to_keep=max_to_keep)
         self.session = tf.Session()
 
-        writer = tf.summary.FileWriter("/home/domain/yawner/2019/log/1")
-        writer.add_graph(self.session.graph)
-
         # Initialize variables
         tf.global_variables_initializer().run(session=self.session)
         print("Variables initialized")
+
+        writer = tf.summary.FileWriter("/home/domain/yawner/2019/log/1")
+        writer.add_graph(self.session.graph)
 
     def _init_model(self, *args, **kwargs):
         raise NotImplementedError
@@ -145,20 +145,25 @@ class BaseModel:
 
                         print("[%d, %d] Report%s (training batch):" % (
                             i, iteration, self.output_size))
-                        Q_training_batch, loss_training_batch = self.F_score_and_loss(batch, gradient_batch_sizes)
-                        print("SCORE TRAINING:", Q_training_batch)
-                        print("[%d, %d] loss (training batch) = %f" % (i, iteration, loss_training_batch))
+                        if not batch['model_output'].shape[1] == 1:
+                            Q_training_batch, loss_training_batch = self.F_score_and_loss(batch, gradient_batch_sizes)
+                            print("SCORE TRAINING:", Q_training_batch)
+                            print("[%d, %d] loss (training batch) = %f" % (i, iteration, loss_training_batch))
 
-                        validation_batch, validation_gradient_batch_sizes = validation_batch_factory.next(
-                            validation_batch_factory.data_size(),
-                            subbatch_max_size=subbatch_max_size,
-                            enforce_protein_boundaries=False)
-                        print(
-                            "[%d, %d] Report%s (validation set):" % (i, iteration, self.output_size))
-                        Q_validation, loss_validation = self.F_score_and_loss(validation_batch,
-                                                                              validation_gradient_batch_sizes)
-                        print("SCORE VALIDATION:", Q_validation)
-                        print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
+                            validation_batch, validation_gradient_batch_sizes = validation_batch_factory.next(
+                                validation_batch_factory.data_size(),
+                                subbatch_max_size=subbatch_max_size,
+                                enforce_protein_boundaries=False)
+                            print(
+                                "[%d, %d] Report%s (validation set):" % (i, iteration, self.output_size))
+                            Q_validation, loss_validation = self.F_score_and_loss(validation_batch,
+                                                                                  validation_gradient_batch_sizes)
+                            print("SCORE VALIDATION:", Q_validation)
+                            print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
+
+                        else:
+                            self.metrics(batch, gradient_batch_sizes)
+                            pass
 
                         self.save(self.model_checkpoint_path, iteration)
 
@@ -217,6 +222,7 @@ class BaseModel:
         y_argmax = np.argmax(y, 1)
         results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['dense'], self.entropy],
                               include_output=True)
+        print(results)
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
         predictions = np.argmax(y_, 1)
 
@@ -234,3 +240,18 @@ class BaseModel:
             return Q_accuracy, loss
         elif not return_Q:
             return F_score, loss
+
+    def metrics(self, batch, gradient_batch_sizes, return_raw=False):
+        y = batch["model_output"]
+        results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['dense'], self.entropy],
+                              include_output=True)
+        print(results)
+        labes = y.T
+        pred = results.T
+        SS_Residual = sum((labes - pred) ** 2)
+        SS_Total = sum((labes - np.mean(labes)) ** 2)
+        r_squared = 1 - (float(SS_Residual)) / SS_Total
+        adj_r_squared = 1 - (1 - r_squared) * (len(labes) - 1) / (len(y) - X.shape[1] - 1)
+
+        return r_squared, adj_r_squared
+
