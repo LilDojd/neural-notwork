@@ -230,6 +230,7 @@ class BaseModel:
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
         labes = self.std * y.T[0] + self.mean
         pred = self.std * y_.T[0] + self.mean
+        print(np.vstack((labes, pred)))
         SS_Residual = np.sum((labes - pred) ** 2)
         SS_Total = np.sum((labes - np.mean(labes)) ** 2)
         r_squared = 1 - (float(SS_Residual)) / SS_Total
