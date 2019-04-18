@@ -14,6 +14,12 @@
 # =============================================================================
 
 
+def _z_score_params(col):
+    mean = col.mean()
+    std = col.std()
+    return {'mean': mean, 'std': std}
+
+
 if __name__ == '__main__':
     import glob
     import os
@@ -115,6 +121,8 @@ if __name__ == '__main__':
     holder = batch_factory.next(1, increment_counter=False)
     high_res_grid_size = holder[0]["high_res"].shape
     output_size = batch_factory.next(1, increment_counter=False)[0]["model_output"].shape[1]
+    en_val_col = batch_factory.next(len(high_res_protein_feature_filenames) - 1, increment_counter=False)[0]["model_output"]
+    stdict = _z_score_params(en_val_col)
 
     if options.model.startswith("Spherical"):
         model = models[options.model](r_size_high_res=high_res_grid_size[1],
@@ -161,7 +169,8 @@ if __name__ == '__main__':
                     max_batch_size=options.max_batch_size,
                     subbatch_max_size=options.subbatch_max_size,
                     dropout_keep_prob=options.dropout_keep_prob,
-                    output_interval=options.output_interval)
+                    output_interval=options.output_interval,
+                    standartisation_params=stdict)
 
     elif options.mode == 'test':
 

@@ -17,7 +17,6 @@ import os
 from functools import reduce
 import numpy as np
 import tensorflow as tf
-from sklearn.metrics import classification_report as report
 
 from batch_factory import get_batch
 
@@ -42,7 +41,7 @@ class BaseModel:
 
         # Set weighted loss function (weight is hardcoded)
         logits = self.layers[-1]['dense']
-        self.entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=self.y)
+        self.entropy = tf.squared_difference(logits, self.y)
         self.regularization = tf.add_n(
             [tf.nn.l2_loss(v) for v in tf.trainable_variables() if not v.name.startswith("b")]) * reg_fact
 
@@ -59,11 +58,14 @@ class BaseModel:
         self.saver = tf.train.Saver(max_to_keep=max_to_keep)
         self.session = tf.Session()
 
+        self.mean = 0
+        self.std = 1
+
         # Initialize variables
         tf.global_variables_initializer().run(session=self.session)
         print("Variables initialized")
 
-        writer = tf.summary.FileWriter("/home/domain/yawner/2019/log/1")
+        writer = tf.summary.FileWriter("/home/domain/yawner/2019/log/2")
         writer.add_graph(self.session.graph)
 
     def _init_model(self, *args, **kwargs):
@@ -106,7 +108,14 @@ class BaseModel:
               subbatch_max_size=25,
               validation_batch_factory=None,
               output_interval=10,
-              dropout_keep_prob=0.5):
+              dropout_keep_prob=0.5,
+              stdict=None):
+
+        if stdict is None:
+            stdict = {'mean': 0, 'std': 1}
+
+        self.mean = stdict['mean']
+        self.std = stdict['std']
 
         print("dropout keep probability: ", dropout_keep_prob)
 
@@ -127,14 +136,14 @@ class BaseModel:
 
                     grid_matrix = batch["high_res"]
 
-                    labes = batch["model_output"]
+                    vals = (batch["model_output"] - self.mean) / self.std
 
                     for sub_iteration, (index, length) in enumerate(
                             zip(np.cumsum(gradient_batch_sizes) - gradient_batch_sizes, gradient_batch_sizes)):
-                        grid_matrix_batch, labels_batch = get_batch(index, index + length, grid_matrix, labes)
+                        grid_matrix_batch, vals_batch = get_batch(index, index + length, grid_matrix, vals)
 
                         feed_dict = dict({self.x_high_res: grid_matrix_batch,
-                                          self.y: labels_batch,
+                                          self.y: vals_batch,
                                           self.dropout_keep_prob: dropout_keep_prob})
 
                         _, loss_value = self.session.run([self.train_step, self.loss], feed_dict=feed_dict)
@@ -145,25 +154,21 @@ class BaseModel:
 
                         print("[%d, %d] Report%s (training batch):" % (
                             i, iteration, self.output_size))
-                        if not batch['model_output'].shape[1] == 1:
-                            Q_training_batch, loss_training_batch = self.F_score_and_loss(batch, gradient_batch_sizes)
-                            print("SCORE TRAINING:", Q_training_batch)
-                            print("[%d, %d] loss (training batch) = %f" % (i, iteration, loss_training_batch))
 
-                            validation_batch, validation_gradient_batch_sizes = validation_batch_factory.next(
-                                validation_batch_factory.data_size(),
-                                subbatch_max_size=subbatch_max_size,
-                                enforce_protein_boundaries=False)
-                            print(
-                                "[%d, %d] Report%s (validation set):" % (i, iteration, self.output_size))
-                            Q_validation, loss_validation = self.F_score_and_loss(validation_batch,
-                                                                                  validation_gradient_batch_sizes)
-                            print("SCORE VALIDATION:", Q_validation)
-                            print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
+                        R_training_batch, adjR, loss_training_batch = self.metrics(batch, gradient_batch_sizes)
+                        print("SCORE TRAINING:", f"R-score: {R_training_batch} Adjusted R-score: {adjR}")
+                        print("[%d, %d] loss (training batch) = %f" % (i, iteration, loss_training_batch))
 
-                        else:
-                            self.metrics(batch, gradient_batch_sizes)
-                            pass
+                        validation_batch, validation_gradient_batch_sizes = validation_batch_factory.next(
+                            validation_batch_factory.data_size(),
+                            subbatch_max_size=subbatch_max_size,
+                            enforce_protein_boundaries=False)
+                        print(
+                            "[%d, %d] Report%s (validation set):" % (i, iteration, self.output_size))
+                        R_validation_batch, adjRval, loss_validation = self.metrics(validation_batch,
+                                                                                    validation_gradient_batch_sizes)
+                        print("SCORE TRAINING:", f"R-score: {R_validation_batch} Adjusted R-score: {adjRval}")
+                        print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
 
                         self.save(self.model_checkpoint_path, iteration)
 
@@ -196,7 +201,7 @@ class BaseModel:
         grid_matrix = batch["high_res"]
 
         if include_output:
-            labels = batch["model_output"]
+            labels = (batch["model_output"] - self.mean) / self.std
 
         results = []
 
@@ -206,8 +211,8 @@ class BaseModel:
             feed_dict = {self.x_high_res: grid_matrix_batch, self.dropout_keep_prob: 1.0}
 
             if include_output:
-                labels_batch, = get_batch(index, index + length, labels)
-                feed_dict[self.y] = labels_batch
+                vals_batch, = get_batch(index, index + length, labels)
+                feed_dict[self.y] = vals_batch
 
             results.append(self.session.run(var, feed_dict=feed_dict))
 
@@ -217,26 +222,24 @@ class BaseModel:
         results = self._infer(batch, gradient_batch_sizes, var=self.layers[-1]['activation'], include_output=False)
         return np.concatenate(results)
 
-
     def metrics(self, batch, gradient_batch_sizes, return_raw=False):
+
         y = batch["model_output"]
         results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['dense'], self.entropy],
                               include_output=True)
-        print(results)
-        labes = y.T
-        pred = results.T
+        y_, entropies = list(map(np.concatenate, list(zip(*results))))
+        labes = self.std * y.T + self.mean
+        pred = self.std * y_.T + self.mean
         SS_Residual = sum((labes - pred) ** 2)
         SS_Total = sum((labes - np.mean(labes)) ** 2)
         r_squared = 1 - (float(SS_Residual)) / SS_Total
-        adj_r_squared = 1 - (1 - r_squared) * (len(labes) - 1) / (len(y) - X.shape[1] - 1)
+        adj_r_squared = 1 - (1 - r_squared) * (len(labes) - 1) / (len(labes) - y.shape[1] - 1)
 
         regularization = self.session.run(self.regularization, feed_dict={})
         loss = np.mean(entropies) + regularization
 
         if return_raw:
-            return loss, identical, entropies, regularization
-        elif return_Q:
-            return Q_accuracy, loss
-        elif not return_Q:
-            return F_score, loss
+            return loss, entropies, regularization
+        else:
+            return r_squared, adj_r_squared, loss
 
