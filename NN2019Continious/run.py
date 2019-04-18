@@ -120,9 +120,10 @@ if __name__ == '__main__':
 
     holder = batch_factory.next(1, increment_counter=False)
     high_res_grid_size = holder[0]["high_res"].shape
-    output_size = batch_factory.next(1, increment_counter=False)[0]["model_output"].shape[1]
-    en_val_col = batch_factory.next(len(high_res_protein_feature_filenames) - 1, increment_counter=False)[0]["model_output"]
-    stdict = _z_score_params(en_val_col)
+    # output_size = batch_factory.next(1, increment_counter=False)[0]["model_output"].shape[1]
+    # en_val_col = batch_factory.next(len(high_res_protein_feature_filenames) - 1, increment_counter=False)[0]["model_output"]
+    # temporarily hardcoded
+    stdict = {'mean': 0, 'std': 1}
 
     if options.model.startswith("Spherical"):
         model = models[options.model](r_size_high_res=high_res_grid_size[1],
