@@ -351,6 +351,7 @@ if __name__ == '__main__':
         print(['_'.join(os.path.basename(pdb).split('_')[1:3]) for pdb in pdb_filenames],
               Bcolors.WARNING, to_pass, Bcolors.ENDC)
         print("Iterating on unextracted files only")
+        print(f"{len(pdb_filenames)} structures to extract")
         joblib.Parallel(n_jobs=args.n_proc, batch_size=1)(
             joblib.delayed(extract_atomistic_features)(pdb_filename,
                                                        args.max_radius,
