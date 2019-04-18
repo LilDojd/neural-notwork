@@ -346,9 +346,9 @@ if __name__ == '__main__':
         pdb_filenames = glob.glob(os.path.join(args.pdb_input_dir, "*.pdb"))
         to_pass = glob.glob(os.path.join(args.output_dir, "*.npz"))
         to_pass = set(['_'.join(i.split('_')[0:2]) for i in to_pass])
-        pdb_filenames = [pdb for pdb in pdb_filenames if '_'.join(pdb.split('_').join[1:3]) not in to_pass]
+        pdb_filenames = [pdb for pdb in pdb_filenames if '_'.join(pdb.split('_')[1:3]) not in to_pass]
         print("Previously extracted files from a whole set:")
-        print(['_'.join(pdb.split('_').join[1:3]) for pdb in pdb_filenames], Bcolors.WARNING, to_pass, Bcolors.ENDC)
+        print(['_'.join(pdb.split('_')[1:3]) for pdb in pdb_filenames], Bcolors.WARNING, to_pass, Bcolors.ENDC)
         print("Iterating on unextracted files only")
         joblib.Parallel(n_jobs=args.n_proc, batch_size=1)(
             joblib.delayed(extract_atomistic_features)(pdb_filename,
