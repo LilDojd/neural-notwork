@@ -170,7 +170,7 @@ if __name__ == '__main__':
                     subbatch_max_size=options.subbatch_max_size,
                     dropout_keep_prob=options.dropout_keep_prob,
                     output_interval=options.output_interval,
-                    standartisation_params=stdict)
+                    stdict=stdict)
 
     elif options.mode == 'test':
 
