@@ -217,29 +217,6 @@ class BaseModel:
         results = self._infer(batch, gradient_batch_sizes, var=self.layers[-1]['activation'], include_output=False)
         return np.concatenate(results)
 
-    def F_score_and_loss(self, batch, gradient_batch_sizes, return_raw=False, return_Q=True):
-        y = batch["model_output"]
-        y_argmax = np.argmax(y, 1)
-        results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['dense'], self.entropy],
-                              include_output=True)
-        print(results)
-        y_, entropies = list(map(np.concatenate, list(zip(*results))))
-        predictions = np.argmax(y_, 1)
-
-        identical = (predictions == y_argmax)
-        Q_accuracy = np.mean(identical)
-        print(np.vstack((y_argmax, predictions)))
-        F_score = report(y_argmax, predictions, target_names=['Worse', 'Same', 'Better'])
-
-        regularization = self.session.run(self.regularization, feed_dict={})
-        loss = np.mean(entropies) + regularization
-
-        if return_raw:
-            return loss, identical, entropies, regularization
-        elif return_Q:
-            return Q_accuracy, loss
-        elif not return_Q:
-            return F_score, loss
 
     def metrics(self, batch, gradient_batch_sizes, return_raw=False):
         y = batch["model_output"]
@@ -253,5 +230,13 @@ class BaseModel:
         r_squared = 1 - (float(SS_Residual)) / SS_Total
         adj_r_squared = 1 - (1 - r_squared) * (len(labes) - 1) / (len(y) - X.shape[1] - 1)
 
-        return r_squared, adj_r_squared
+        regularization = self.session.run(self.regularization, feed_dict={})
+        loss = np.mean(entropies) + regularization
+
+        if return_raw:
+            return loss, identical, entropies, regularization
+        elif return_Q:
+            return Q_accuracy, loss
+        elif not return_Q:
+            return F_score, loss
 

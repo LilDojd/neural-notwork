@@ -1,4 +1,3 @@
-import json
 import os
 from pathlib import Path
 
@@ -17,30 +16,15 @@ from Grids import grids
 center = np.array([41.073, 36.990, 28.097], dtype=np.float32)
 
 
-# I participated in a contest of how ugly a simple function can be and won
-
-
-def checkpoint(mode='load', pdbid=None, filepath="./checkpoint.json"):
-    json_file = Path(filepath)
-    if json_file.is_file():
-        if mode == 'load':
-            with open(filepath, 'r') as readf:
-                return json.load(readf)
-        elif mode == 'dump':
-            try:
-                with open(filepath, 'r') as readf:
-                    data = json.load(readf)
-                try:
-                    data.append(pdbid)
-                except AttributeError:
-                    data = [data, pdbid]
-            except json.decoder.JSONDecodeError:
-                data = pdbid
-                pass
-            with open(filepath, 'w') as dumpf:
-                json.dump(data, dumpf)
-    else:
-        json_file.touch()
+class Bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 
 def cut_active_center(feats, cent=center, rad=12):
@@ -309,7 +293,6 @@ def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstr
                       bins_per_angstrom=bins_per_angstrom,
                       coord_sys=coor_sys)
 
-    checkpoint('dump', pdb_filename)
 
 
 if __name__ == '__main__':
@@ -361,9 +344,12 @@ if __name__ == '__main__':
 
     if args.mode == "extract":
         pdb_filenames = glob.glob(os.path.join(args.pdb_input_dir, "*.pdb"))
-        to_pass = checkpoint()
-        if to_pass:
-            pdb_filenames = [pdb for pdb in pdb_filenames if pdb not in to_pass]
+        to_pass = glob.glob(os.path.join(args.output_dir, "*.npz"))
+        to_pass = set(['_'.join(i.split('_')[0:2]) for i in to_pass])
+        pdb_filenames = [pdb for pdb in pdb_filenames if '_'.join(pdb.split('_').join[1:3]) not in to_pass]
+        print("Previously extracted files from a whole set:")
+        print(['_'.join(pdb.split('_').join[1:3]) for pdb in pdb_filenames], Bcolors.WARNING, to_pass, Bcolors.ENDC)
+        print("Iterating on unextracted files only")
         joblib.Parallel(n_jobs=args.n_proc, batch_size=1)(
             joblib.delayed(extract_atomistic_features)(pdb_filename,
                                                        args.max_radius,
