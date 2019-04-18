@@ -229,9 +229,9 @@ class BaseModel:
                               include_output=True)
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
         print(entropies, "ENTR")
-        labes = self.std * y.T + self.mean
+        labes = self.std * y.T[0] + self.mean
         print(labes, len(labes))
-        pred = self.std * y_.T + self.mean
+        pred = self.std * y_.T[0] + self.mean
         print(pred, len(pred))
         SS_Residual = np.sum((labes - pred) ** 2)
         SS_Total = np.sum((labes - np.mean(labes)) ** 2)
