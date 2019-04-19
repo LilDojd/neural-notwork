@@ -25,7 +25,7 @@ config.gpu_options.allocator_type = 'BFC'
 config.gpu_options.per_process_gpu_memory_fraction = 0.90
 
 
-logpath = "/home/domain/yawner/2019/log/train/spherical/2"
+logpath = "/home/domain/yawner/2019/log/train/spherical/3"
 
 
 def variable_summaries(var, name):
