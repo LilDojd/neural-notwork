@@ -25,17 +25,20 @@ config.gpu_options.allocator_type = 'BFC'
 config.gpu_options.per_process_gpu_memory_fraction = 0.90
 
 
-def variable_summaries(var):
+logpath = "/home/domain/yawner/2019/log/train/spherical/2"
+
+
+def variable_summaries(var, name):
     """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
     with tf.name_scope('summaries'):
         mean = tf.reduce_mean(var)
-        tf.summary.scalar('mean', mean)
-        with tf.name_scope('stddev'):
+        tf.summary.scalar(f'mean_{name}', mean)
+        with tf.name_scope(f'stddev_{name}'):
             stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
-        tf.summary.scalar('stddev', stddev)
-        tf.summary.scalar('max', tf.reduce_max(var))
-        tf.summary.scalar('min', tf.reduce_min(var))
-        tf.summary.histogram('histogram', var)
+        tf.summary.scalar(f'stddev_{name}', stddev)
+        tf.summary.scalar(f'max_{name}', tf.reduce_max(var))
+        tf.summary.scalar(f'min_{name}', tf.reduce_min(var))
+        tf.summary.histogram(f'histogram_{name}', var)
 
 
 class BaseModel:
@@ -63,7 +66,7 @@ class BaseModel:
             with tf.name_scope('loss'):
                 self.loss = tf.reduce_mean(self.entropy) + self.regularization
 
-        tf.summary.scalar('entropy', self.entropy)
+        tf.summary.histogram('entropy', self.entropy)
         tf.summary.scalar('loss', self.loss)
 
         print("Number of parameters: ",
@@ -75,9 +78,9 @@ class BaseModel:
 
         with tf.name_scope('metrics'):
             with tf.name_scope('Rsq'):
-                self.Rsquared = tf.placeholder(tf.float32, shape=None, name='Rsq_summary')
+                self.Rsquared = 0.
             with tf.name_scope('R'):
-                self.Rscore = tf.placeholder(tf.float32, shape=None, name='Rscore_summary')
+                self.Rscore = 0.
         tf.summary.scalar('r_squared', self.Rsquared)
         tf.summary.scalar('r_score', self.Rscore)
 
@@ -90,7 +93,7 @@ class BaseModel:
 
         # Initialize variables
         self.merged = tf.summary.merge_all()
-        self.writer = tf.summary.FileWriter("/home/domain/yawner/2019/log/3")
+        self.writer = tf.summary.FileWriter(logpath)
         self.writer.add_graph(self.session.graph)
         tf.global_variables_initializer().run(session=self.session)
         print("Variables initialized")
@@ -124,10 +127,10 @@ class BaseModel:
             with tf.name_scope('weights_dense_%d' % index):
                 W = tf.Variable(tf.truncated_normal([reshaped_input.get_shape().as_list()[1], output_size], stddev=0.1),
                                 name="W%d" % index)
-            variable_summaries(W)
+            variable_summaries(W, f"W{index}")
             with tf.name_scope('bias_dense_%d' % index):
                 b = tf.Variable(tf.truncated_normal([output_size], stddev=0.1), name="b%d" % index)
-            variable_summaries(b)
+            variable_summaries(b, f"b{index}")
             dense = tf.nn.bias_add(tf.matmul(reshaped_input, W), b)
 
         return {'W': W, 'b': b, 'dense': dense}
@@ -152,7 +155,7 @@ class BaseModel:
 
         # Training loop
         iteration = 0
-
+        num_individual_iters = 0
         with self.session.as_default():
 
             for i in range(num_passes):
@@ -178,8 +181,8 @@ class BaseModel:
                                           self.dropout_keep_prob: dropout_keep_prob})
 
                         summary, _, loss_value = self.session.run([self.merged, self.train_step, self.loss], feed_dict=feed_dict)
-                        self.writer.add_summary(summary, sub_iteration)
-
+                        self.writer.add_summary(summary, num_individual_iters)
+                        num_individual_iters += 1
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
 
                     if (iteration + 1) % output_interval == 0:
@@ -201,7 +204,6 @@ class BaseModel:
                                                                                     validation_gradient_batch_sizes)
                         self.Rsquared = R_validation_batch
                         self.Rscore = adjR
-
                         print("SCORE TRAINING:", f"Rsq-score: {R_validation_batch} R-score: {adjRval}")
                         print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
 

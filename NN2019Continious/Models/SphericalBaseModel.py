@@ -48,10 +48,10 @@ class SphericalBaseModel(BaseModel):
         with tf.name_scope("spherical_convolution_%d" % index):
             with tf.name_scope('weights_conv_%d' % index):
                 W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W_%d" % index)
-            variable_summaries(W)
+            variable_summaries(W, f"W{index}")
             with tf.name_scope('bias_conv_%d' % index):
                 b = tf.Variable(tf.truncated_normal(filter_shape[-1:], stddev=0.1), name="bias_%d" % index)
-            variable_summaries(b)
+            variable_summaries(b, f"b{index}")
             conv = Ops.conv_spherical(input=input,
                                       filter=W,
                                       strides=[1, stride_r, stride_theta, stride_phi, 1],

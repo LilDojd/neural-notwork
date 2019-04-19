@@ -126,7 +126,7 @@ class SphericalModel(SphericalBaseModel):
 
         ### LAYER 5 ###
         self.layers.append({})
-        with tf.name_scope("dense_layer"):
+        with tf.name_scope("dense_layer1"):
             self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
                                                            self.layers[-2]['pool'],
                                                            output_size=2048))
@@ -137,7 +137,7 @@ class SphericalModel(SphericalBaseModel):
 
         ### LAYER 6 ###
         self.layers.append({})
-        with tf.name_scope("dense_layer"):
+        with tf.name_scope("dense_layer2"):
             self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
                                                            self.layers[-2]['dropout'],
                                                            output_size=-1))
@@ -148,7 +148,7 @@ class SphericalModel(SphericalBaseModel):
 
         ### LAYER 7 ###
         self.layers.append({})
-        with tf.name_scope("Output_layer"):
+        with tf.name_scope("Output_layer3"):
             self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
                                                            self.layers[-2]['dropout'],
                                                            output_size=output_size))
