@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="Lab" persistUploadOnCheckin="false" />
+  <component name="PublishConfigData" autoUpload="Always" serverName="yawner@vsb.fbb.msu.ru:22022" persistUploadOnCheckin="false">
+    <serverData>
+      <paths name="yawner@vsb.fbb.msu.ru:22022">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/domain/yawner/2019/DFPase/" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
 </project>

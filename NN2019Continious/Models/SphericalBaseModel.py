@@ -17,6 +17,8 @@ import tensorflow as tf
 
 import Ops
 from .BaseModel import BaseModel
+from .BaseModel import variable_summaries
+
 
 
 class SphericalBaseModel(BaseModel):
@@ -25,7 +27,8 @@ class SphericalBaseModel(BaseModel):
                                        input,
                                        ksize,
                                        strides):
-        pool = Ops.avg_pool_spherical(input, ksize, strides, padding='VALID', name="spherical_avg_pool%d" % index)
+        with tf.name_scope("spherical_avgpool_%d" % index):
+            pool = Ops.avg_pool_spherical(input, ksize, strides, padding='VALID', name="spherical_avg_pool%d" % index)
 
         return {'pool': pool}
 
@@ -40,17 +43,21 @@ class SphericalBaseModel(BaseModel):
                                     stride_theta=1,
                                     stride_phi=1,
                                     padding='VALID'):
-
         filter_shape = [window_size_r, window_size_theta, window_size_phi, input.get_shape().as_list()[-1],
                         channels_out]
-        W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W_%d" % index)
-        b = tf.Variable(tf.truncated_normal(filter_shape[-1:], stddev=0.1), name="bias_%d" % index)
-        conv = Ops.conv_spherical(input=input,
-                                  filter=W,
-                                  strides=[1, stride_r, stride_theta, stride_phi, 1],
-                                  padding=padding,
-                                  name="conv_%d" % index)
+        with tf.name_scope("spherical_convolution_%d" % index):
+            with tf.name_scope('weights_conv_%d' % index):
+                W = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.1), name="W_%d" % index)
+            variable_summaries(W)
+            with tf.name_scope('bias_conv_%d' % index):
+                b = tf.Variable(tf.truncated_normal(filter_shape[-1:], stddev=0.1), name="bias_%d" % index)
+            variable_summaries(b)
+            conv = Ops.conv_spherical(input=input,
+                                      filter=W,
+                                      strides=[1, stride_r, stride_theta, stride_phi, 1],
+                                      padding=padding,
+                                      name="conv_%d" % index)
 
-        output = tf.nn.bias_add(conv, b)
+            output = tf.nn.bias_add(conv, b)
 
         return {'W': W, 'b': b, 'conv': output}

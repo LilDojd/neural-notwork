@@ -25,6 +25,19 @@ config.gpu_options.allocator_type = 'BFC'
 config.gpu_options.per_process_gpu_memory_fraction = 0.90
 
 
+def variable_summaries(var):
+    """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
+    with tf.name_scope('summaries'):
+        mean = tf.reduce_mean(var)
+        tf.summary.scalar('mean', mean)
+        with tf.name_scope('stddev'):
+            stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+        tf.summary.scalar('stddev', stddev)
+        tf.summary.scalar('max', tf.reduce_max(var))
+        tf.summary.scalar('min', tf.reduce_min(var))
+        tf.summary.histogram('histogram', var)
+
+
 class BaseModel:
     """Base model with training and testing procedures"""
 
@@ -41,11 +54,17 @@ class BaseModel:
 
         # Set weighted loss function (weight is hardcoded)
         logits = self.layers[-1]['dense']
-        self.entropy = tf.squared_difference(logits, self.y)
-        self.regularization = tf.add_n(
-            [tf.nn.l2_loss(v) for v in tf.trainable_variables() if not v.name.startswith("b")]) * reg_fact
+        with tf.name_scope('loss_and_entropy'):
+            with tf.name_scope('entropy'):
+                self.entropy = tf.squared_difference(logits, self.y, "entropy")
+            with tf.name_scope('regularisation'):
+                self.regularization = tf.add_n(
+                         [tf.nn.l2_loss(v) for v in tf.trainable_variables() if not v.name.startswith("b")]) * reg_fact
+            with tf.name_scope('loss'):
+                self.loss = tf.reduce_mean(self.entropy) + self.regularization
 
-        self.loss = tf.reduce_mean(self.entropy) + self.regularization
+        tf.summary.scalar('entropy', self.entropy)
+        tf.summary.scalar('loss', self.loss)
 
         print("Number of parameters: ",
               sum(reduce(lambda x, y: x * y, v.get_shape().as_list()) for v in tf.trainable_variables()))
@@ -53,6 +72,14 @@ class BaseModel:
         # Set the optimizer #
         self.train_step = tf.train.AdamOptimizer(learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(
             self.loss)
+
+        with tf.name_scope('metrics'):
+            with tf.name_scope('Rsq'):
+                self.Rsquared = tf.placeholder(tf.float32, shape=None, name='Rsq_summary')
+            with tf.name_scope('R'):
+                self.Rscore = tf.placeholder(tf.float32, shape=None, name='Rscore_summary')
+        tf.summary.scalar('r_squared', self.Rsquared)
+        tf.summary.scalar('r_score', self.Rscore)
 
         # Session and saver
         self.saver = tf.train.Saver(max_to_keep=max_to_keep)
@@ -62,11 +89,11 @@ class BaseModel:
         self.std = 1
 
         # Initialize variables
+        self.merged = tf.summary.merge_all()
+        self.writer = tf.summary.FileWriter("/home/domain/yawner/2019/log/3")
+        self.writer.add_graph(self.session.graph)
         tf.global_variables_initializer().run(session=self.session)
         print("Variables initialized")
-
-        writer = tf.summary.FileWriter("/home/domain/yawner/2019/log/2")
-        writer.add_graph(self.session.graph)
 
     def _init_model(self, *args, **kwargs):
         raise NotImplementedError
@@ -88,16 +115,20 @@ class BaseModel:
                            input,
                            output_size):
         """Method for creating a dense layer"""
+        with tf.name_scope('dense_%d' % index):
+            with tf.name_scope('reshape_%d' % index):
+                reshaped_input = tf.reshape(input, [-1, np.prod(input.get_shape().as_list()[1:])])
 
-        reshaped_input = tf.reshape(input, [-1, np.prod(input.get_shape().as_list()[1:])])
-
-        if output_size == -1:
-            output_size = reshaped_input.get_shape().as_list()[1]
-
-        W = tf.Variable(tf.truncated_normal([reshaped_input.get_shape().as_list()[1], output_size], stddev=0.1),
-                        name="W%d" % index)
-        b = tf.Variable(tf.truncated_normal([output_size], stddev=0.1), name="b%d" % index)
-        dense = tf.nn.bias_add(tf.matmul(reshaped_input, W), b)
+            if output_size == -1:
+                output_size = reshaped_input.get_shape().as_list()[1]
+            with tf.name_scope('weights_dense_%d' % index):
+                W = tf.Variable(tf.truncated_normal([reshaped_input.get_shape().as_list()[1], output_size], stddev=0.1),
+                                name="W%d" % index)
+            variable_summaries(W)
+            with tf.name_scope('bias_dense_%d' % index):
+                b = tf.Variable(tf.truncated_normal([output_size], stddev=0.1), name="b%d" % index)
+            variable_summaries(b)
+            dense = tf.nn.bias_add(tf.matmul(reshaped_input, W), b)
 
         return {'W': W, 'b': b, 'dense': dense}
 
@@ -146,7 +177,8 @@ class BaseModel:
                                           self.y: vals_batch,
                                           self.dropout_keep_prob: dropout_keep_prob})
 
-                        _, loss_value = self.session.run([self.train_step, self.loss], feed_dict=feed_dict)
+                        summary, _, loss_value = self.session.run([self.merged, self.train_step, self.loss], feed_dict=feed_dict)
+                        self.writer.add_summary(summary, sub_iteration)
 
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
 
@@ -156,7 +188,7 @@ class BaseModel:
                             i, iteration, self.output_size))
 
                         R_training_batch, adjR, loss_training_batch = self.metrics(batch, gradient_batch_sizes)
-                        print("SCORE TRAINING:", f"R-score: {R_training_batch} Adjusted R-score: {adjR}")
+                        print("SCORE TRAINING:", f"Rsq-score: {R_training_batch} R-score: {adjR}")
                         print("[%d, %d] loss (training batch) = %f" % (i, iteration, loss_training_batch))
 
                         validation_batch, validation_gradient_batch_sizes = validation_batch_factory.next(
@@ -167,7 +199,10 @@ class BaseModel:
                             "[%d, %d] Report%s (validation set):" % (i, iteration, self.output_size))
                         R_validation_batch, adjRval, loss_validation = self.metrics(validation_batch,
                                                                                     validation_gradient_batch_sizes)
-                        print("SCORE TRAINING:", f"R-score: {R_validation_batch} Adjusted R-score: {adjRval}")
+                        self.Rsquared = R_validation_batch
+                        self.Rscore = adjR
+
+                        print("SCORE TRAINING:", f"Rsq-score: {R_validation_batch} R-score: {adjRval}")
                         print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
 
                         self.save(self.model_checkpoint_path, iteration)
@@ -231,10 +266,10 @@ class BaseModel:
         labes = self.std * y.T[0] + self.mean
         pred = self.std * y_.T[0] + self.mean
         print(np.vstack((labes, pred)))
-        SS_Residual = np.sum((labes - pred) ** 2)
-        SS_Total = np.sum((labes - np.mean(labes)) ** 2)
-        r_squared = 1 - (float(SS_Residual)) / SS_Total
-        adj_r_squared = 1 - (1 - r_squared) * (len(labes) - 1) / (len(labes) - y.shape[1] - 1)
+        total_error = tf.reduce_sum(tf.square(tf.subtract(labes, tf.reduce_mean(y))))
+        unexplained_error = tf.reduce_sum(tf.square(tf.subtract(labes, pred)))
+        R_squared = tf.subtract(tf.div(total_error, unexplained_error), 1.0)
+        R = tf.multiply(tf.sign(R_squared), tf.sqrt(tf.abs(unexplained_error)))
 
         regularization = self.session.run(self.regularization, feed_dict={})
         loss = np.mean(entropies) + regularization
@@ -242,5 +277,5 @@ class BaseModel:
         if return_raw:
             return loss, entropies, regularization
         else:
-            return r_squared, adj_r_squared, loss
+            return R_squared, R, loss
 

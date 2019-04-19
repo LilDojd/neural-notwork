@@ -14,8 +14,11 @@
       <sourceFolder url="file://$MODULE_DIR$/NN2019Continious/Utils" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/NIPS2017" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.7.3 (sftp://yawner@vsb.fbb.msu.ru:22022/home/domain/yawner/miniconda3/envs/tf_gpu/bin/python)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="PyDocumentationSettings">
+    <option name="renderExternalDocumentation" value="true" />
   </component>
   <component name="TestRunnerService">
     <option name="projectConfiguration" value="pytest" />
