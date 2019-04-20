@@ -191,10 +191,12 @@ class BaseModel:
                     self.accuracy_summary.value[0].simple_value = accuracy
                     self.writer.add_summary(self.accuracy_summary, iteration)
 
-                    valid_vals_batch, valid_grid_matr_batch = validation_batch_factory.next(
+                    valid_batch, _ = validation_batch_factory.next(
                         validation_batch_factory.data_size(),
                         subbatch_max_size=subbatch_max_size,
                         enforce_protein_boundaries=False)
+                    valid_vals_batch = valid_batch['model_output']
+                    valid_grid_matr_batch = valid_batch['high_res']
                     val_accuracy = self.get_accuracy(valid_vals_batch, valid_grid_matr_batch)
                     self.validation_accuracy_summary.value[0].simple_value = val_accuracy
                     self.validation_writer.add_summary(self.validation_accuracy_summary, iteration)
