@@ -20,6 +20,7 @@ if __name__ == '__main__':
     import numpy as np
     from Models import models
     from batch_factory import BatchFactory
+    from sklearn.utils import shuffle
 
     import argparse
 
@@ -73,6 +74,9 @@ if __name__ == '__main__':
         glob.glob(os.path.join(options.high_res_features_input_dir, "*protein_features.npz")))
     high_res_grid_feature_filenames = sorted(
         glob.glob(os.path.join(options.high_res_features_input_dir, "*residue_features.npz")))
+
+    high_res_protein_feature_filenames, high_res_grid_feature_filenames = shuffle(high_res_protein_feature_filenames,
+                                                                                  high_res_grid_feature_filenames)
 
     train_start = 0
     validation_end = test_start = int(len(high_res_protein_feature_filenames) * (1. - options.test_set_fraction))
