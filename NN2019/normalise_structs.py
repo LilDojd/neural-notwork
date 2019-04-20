@@ -9,6 +9,7 @@ def create_batch(pdb_ids, csv_df):
     dataframe = pd.DataFrame(list(zip(pdb_ids, en_class)), columns=['PDBID', 'EN_CLASS']).dropna()
     melted = pd.melt(dataframe, value_vars=['EN_CLASS'], var_name='en_class', value_name='val')
     count = melted.groupby(by=['en_class', 'val'])['val'].count()
+    print(count)
     minimal = count.min()
     new_df = pd.DataFrame(columns=dataframe.columns)
     for val in dataframe['EN_CLASS'].unique():

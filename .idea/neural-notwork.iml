@@ -12,6 +12,7 @@
       <sourceFolder url="file://$MODULE_DIR$/NN2019Continious/Models" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/NN2019Continious/Ops" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/NN2019Continious/Utils" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/grid_scripts" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/NIPS2017" />
     </content>
     <orderEntry type="jdk" jdkName="Remote Python 3.7.3 (sftp://yawner@vsb.fbb.msu.ru:22022/home/domain/yawner/miniconda3/envs/tf_gpu/bin/python)" jdkType="Python SDK" />
