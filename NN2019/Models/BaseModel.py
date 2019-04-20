@@ -26,6 +26,22 @@ config.gpu_options.allocator_type = 'BFC'
 config.gpu_options.per_process_gpu_memory_fraction = 0.90
 
 
+logpath = "/home/domain/yawner/2019/log/train/spherical/class/1"
+
+
+def variable_summaries(var, name):
+    """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
+    with tf.name_scope('summaries'):
+        mean = tf.reduce_mean(var)
+        tf.summary.scalar(f'mean_{name}', mean)
+        with tf.name_scope(f'stddev_{name}'):
+            stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+        tf.summary.scalar(f'stddev_{name}', stddev)
+        tf.summary.scalar(f'max_{name}', tf.reduce_max(var))
+        tf.summary.scalar(f'min_{name}', tf.reduce_min(var))
+        tf.summary.histogram(f'histogram_{name}', var)
+
+
 class BaseModel:
     """Base model with training and testing procedures"""
 
@@ -42,27 +58,43 @@ class BaseModel:
 
         # Set weighted loss function (weight is hardcoded)
         logits = self.layers[-1]['dense']
-        self.entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=self.y)
-        self.regularization = tf.add_n(
-            [tf.nn.l2_loss(v) for v in tf.trainable_variables() if not v.name.startswith("b")]) * reg_fact
+        with tf.name_scope('loss_and_entropy'):
+            with tf.name_scope('entropy'):
+                self.entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=self.y, name="Crossentropy")
+            with tf.name_scope('regularisation'):
+                self.regularization = tf.add_n(
+                         [tf.nn.l2_loss(v) for v in tf.trainable_variables() if not v.name.startswith("b")]) * reg_fact
+            with tf.name_scope('loss'):
+                self.loss = tf.reduce_mean(self.entropy) + self.regularization
 
-        self.loss = tf.reduce_mean(self.entropy) + self.regularization
+        tf.summary.histogram('entropy', self.entropy)
+        tf.summary.scalar('loss', self.loss)
 
         print("Number of parameters: ",
               sum(reduce(lambda x, y: x * y, v.get_shape().as_list()) for v in tf.trainable_variables()))
 
         # Set the optimizer #
-        self.train_step = tf.train.AdamOptimizer(learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(
-            self.loss)
+        with tf.name_scope('train_step'):
+            self.train_step = tf.train.AdamOptimizer(learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(
+                self.loss)
+        tf.summary.scalar('train_step', self.train_step)
 
         # Session and saver
         self.saver = tf.train.Saver(max_to_keep=max_to_keep)
         self.session = tf.Session()
 
-        writer = tf.summary.FileWriter("/home/domain/yawner/2019/log/1")
-        writer.add_graph(self.session.graph)
+        self.preds = self.session.run(self.x)
+
+        self.correct_pred = tf.equal(tf.argmax(self.peds, 1), tf.argmax(self.y, 1))
+
+        with tf.name_scope('accuracy'):
+            self.accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
+        tf.summary.scalar('accuracy', self.accuracy)
 
         # Initialize variables
+        self.merged = tf.summary.merge_all()
+        self.writer = tf.summary.FileWriter(logpath)
+        self.writer.add_graph(self.session.graph)
         tf.global_variables_initializer().run(session=self.session)
         print("Variables initialized")
 
@@ -86,16 +118,20 @@ class BaseModel:
                            input,
                            output_size):
         """Method for creating a dense layer"""
+        with tf.name_scope('dense_%d' % index):
+            with tf.name_scope('reshape_%d' % index):
+                reshaped_input = tf.reshape(input, [-1, np.prod(input.get_shape().as_list()[1:])])
 
-        reshaped_input = tf.reshape(input, [-1, np.prod(input.get_shape().as_list()[1:])])
-
-        if output_size == -1:
-            output_size = reshaped_input.get_shape().as_list()[1]
-
-        W = tf.Variable(tf.truncated_normal([reshaped_input.get_shape().as_list()[1], output_size], stddev=0.1),
-                        name="W%d" % index)
-        b = tf.Variable(tf.truncated_normal([output_size], stddev=0.1), name="b%d" % index)
-        dense = tf.nn.bias_add(tf.matmul(reshaped_input, W), b)
+            if output_size == -1:
+                output_size = reshaped_input.get_shape().as_list()[1]
+            with tf.name_scope('weights_dense_%d' % index):
+                W = tf.Variable(tf.truncated_normal([reshaped_input.get_shape().as_list()[1], output_size], stddev=0.1),
+                                name="W%d" % index)
+            variable_summaries(W, f"W{index}")
+            with tf.name_scope('bias_dense_%d' % index):
+                b = tf.Variable(tf.truncated_normal([output_size], stddev=0.1), name="b%d" % index)
+            variable_summaries(b, f"b{index}")
+            dense = tf.nn.bias_add(tf.matmul(reshaped_input, W), b)
 
         return {'W': W, 'b': b, 'dense': dense}
 
@@ -112,7 +148,7 @@ class BaseModel:
 
         # Training loop
         iteration = 0
-
+        num_individual_iters = 0
         with self.session.as_default():
 
             for i in range(num_passes):
@@ -127,18 +163,19 @@ class BaseModel:
 
                     grid_matrix = batch["high_res"]
 
-                    labes = batch["model_output"]
+                    vals = batch["model_output"]
 
                     for sub_iteration, (index, length) in enumerate(
                             zip(np.cumsum(gradient_batch_sizes) - gradient_batch_sizes, gradient_batch_sizes)):
-                        grid_matrix_batch, labels_batch = get_batch(index, index + length, grid_matrix, labes)
+                        grid_matrix_batch, vals_batch = get_batch(index, index + length, grid_matrix, vals)
 
                         feed_dict = dict({self.x_high_res: grid_matrix_batch,
-                                          self.y: labels_batch,
+                                          self.y: vals_batch,
                                           self.dropout_keep_prob: dropout_keep_prob})
 
-                        _, loss_value = self.session.run([self.train_step, self.loss], feed_dict=feed_dict)
-
+                        summary, _, loss_value = self.session.run([self.merged, self.train_step, self.loss], feed_dict=feed_dict)
+                        self.writer.add_summary(summary, num_individual_iters)
+                        num_individual_iters += 1
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
 
                     if (iteration + 1) % output_interval == 0:
@@ -234,3 +271,4 @@ class BaseModel:
             return Q_accuracy, loss
         elif not return_Q:
             return F_score, loss
+

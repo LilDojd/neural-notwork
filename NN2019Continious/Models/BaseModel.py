@@ -25,7 +25,7 @@ config.gpu_options.allocator_type = 'BFC'
 config.gpu_options.per_process_gpu_memory_fraction = 0.90
 
 
-logpath = "/home/domain/yawner/2019/log/train/spherical/3"
+logpath = "/home/domain/yawner/2019/log/train/spherical/1"
 
 
 def variable_summaries(var, name):
@@ -274,6 +274,8 @@ class BaseModel:
         R = tf.multiply(tf.sign(R_squared), tf.sqrt(tf.abs(unexplained_error)))
 
         regularization = self.session.run(self.regularization, feed_dict={})
+        R_squared = self.session.run(R_squared, feed_dict={})
+        R = self.session.run(R, feed_dict={})
         loss = np.mean(entropies) + regularization
 
         if return_raw:

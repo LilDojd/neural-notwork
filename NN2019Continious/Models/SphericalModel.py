@@ -51,7 +51,7 @@ class SphericalModel(SphericalBaseModel):
                                                                     stride_theta=2,
                                                                     stride_phi=2,
                                                                     padding='VALID'))
-            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="RELU1")
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="relu1")
             self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
                                                                        self.layers[-1]['activation'],
                                                                        ksize=[1, 1, 3, 3, 1],
@@ -73,7 +73,7 @@ class SphericalModel(SphericalBaseModel):
                                                                     stride_theta=1,
                                                                     stride_phi=1,
                                                                     padding='VALID'))
-            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="RELU2")
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="relu2")
             self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
                                                                        self.layers[-1]['activation'],
                                                                        ksize=[1, 3, 3, 3, 1],
@@ -94,7 +94,7 @@ class SphericalModel(SphericalBaseModel):
                                                                     stride_theta=1,
                                                                     stride_phi=1,
                                                                     padding='VALID'))
-            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="RELU3")
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="relu3")
             self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
                                                                        self.layers[-1]['activation'],
                                                                        ksize=[1, 1, 3, 3, 1],
@@ -116,7 +116,7 @@ class SphericalModel(SphericalBaseModel):
                                                                     stride_theta=1,
                                                                     stride_phi=1,
                                                                     padding='VALID'))
-            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="RELU4")
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="relu4")
             self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
                                                                        self.layers[-1]['activation'],
                                                                        ksize=[1, 1, 1, 3, 1],
@@ -130,7 +130,7 @@ class SphericalModel(SphericalBaseModel):
             self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
                                                            self.layers[-2]['pool'],
                                                            output_size=2048))
-            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['dense'], name="RELU5")
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['dense'], name="relu5")
             self.layers[-1]['dropout'] = tf.nn.dropout(self.layers[-1]['activation'], self.dropout_keep_prob, name="Dropout")
         self.print_layer(self.layers, -1, 'W')
         self.print_layer(self.layers, -1, 'activation')
@@ -141,7 +141,7 @@ class SphericalModel(SphericalBaseModel):
             self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
                                                            self.layers[-2]['dropout'],
                                                            output_size=-1))
-            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['dense'], name="RELU6")
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['dense'], name="relu6")
             self.layers[-1]['dropout'] = tf.nn.dropout(self.layers[-1]['activation'], self.dropout_keep_prob, name="Dropout")
         self.print_layer(self.layers, -1, 'W')
         self.print_layer(self.layers, -1, 'activation')

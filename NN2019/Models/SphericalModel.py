@@ -26,11 +26,13 @@ class SphericalModel(SphericalBaseModel):
                     phi_size_high_res,
                     channels_high_res,
                     output_size):
-        self.output_size = output_size
-        self.x_high_res = tf.placeholder(tf.float32, [None, r_size_high_res, theta_size_high_res, phi_size_high_res,
-                                                      channels_high_res])
-        self.y = tf.placeholder(tf.float32, [None, output_size])
-        self.dropout_keep_prob = tf.placeholder(tf.float32)
+        with tf.name_scope("inputs"):
+
+            self.output_size = output_size
+            self.x_high_res = tf.placeholder(tf.float32, [None, r_size_high_res, theta_size_high_res, phi_size_high_res,
+                                             channels_high_res], name="X_placeholder")
+            self.y = tf.placeholder(tf.float32, [None, output_size], name="Y_placeholder")
+            self.dropout_keep_prob = tf.placeholder(tf.float32)
 
         ### LAYER 0 ###
         self.layers = [{'input': self.x_high_res}]
@@ -38,110 +40,118 @@ class SphericalModel(SphericalBaseModel):
 
         ### LAYER 1 ###
         self.layers.append({})
-        self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
-                                                                self.x_high_res,
-                                                                window_size_r=3,
-                                                                window_size_theta=5,
-                                                                window_size_phi=5,
-                                                                channels_out=16,
-                                                                stride_r=1,
-                                                                stride_theta=2,
-                                                                stride_phi=2,
-                                                                padding='VALID'))
-        self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'])
-        self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
-                                                                   self.layers[-1]['activation'],
-                                                                   ksize=[1, 1, 3, 3, 1],
-                                                                   strides=[1, 1, 2, 2, 1]))
+        with tf.name_scope("First_conv"):
+            self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
+                                                                    self.x_high_res,
+                                                                    window_size_r=3,
+                                                                    window_size_theta=5,
+                                                                    window_size_phi=5,
+                                                                    channels_out=16,
+                                                                    stride_r=1,
+                                                                    stride_theta=2,
+                                                                    stride_phi=2,
+                                                                    padding='VALID'))
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="relu1")
+            self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
+                                                                       self.layers[-1]['activation'],
+                                                                       ksize=[1, 1, 3, 3, 1],
+                                                                       strides=[1, 1, 2, 2, 1]))
 
         self.print_layer(self.layers, -1, 'activation')
         self.print_layer(self.layers, -1, 'pool')
 
         ### LAYER 2 ###
-        self.layers.append({})
-        self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
-                                                                self.layers[-2]['pool'],
-                                                                window_size_r=3,
-                                                                window_size_theta=3,
-                                                                window_size_phi=3,
-                                                                channels_out=32,
-                                                                stride_r=1,
-                                                                stride_theta=1,
-                                                                stride_phi=1,
-                                                                padding='VALID'))
-        self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'])
-        self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
-                                                                   self.layers[-1]['activation'],
-                                                                   ksize=[1, 3, 3, 3, 1],
-                                                                   strides=[1, 2, 1, 2, 1]))
+        with tf.name_scope("Second_conv"):
+            self.layers.append({})
+            self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
+                                                                    self.layers[-2]['pool'],
+                                                                    window_size_r=3,
+                                                                    window_size_theta=3,
+                                                                    window_size_phi=3,
+                                                                    channels_out=32,
+                                                                    stride_r=1,
+                                                                    stride_theta=1,
+                                                                    stride_phi=1,
+                                                                    padding='VALID'))
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="relu2")
+            self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
+                                                                       self.layers[-1]['activation'],
+                                                                       ksize=[1, 3, 3, 3, 1],
+                                                                       strides=[1, 2, 1, 2, 1]))
         self.print_layer(self.layers, -1, 'activation')
         self.print_layer(self.layers, -1, 'pool')
 
         ### LAYER 3 ###
         self.layers.append({})
-        self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
-                                                                self.layers[-2]['pool'],
-                                                                window_size_r=3,
-                                                                window_size_theta=3,
-                                                                window_size_phi=3,
-                                                                channels_out=64,
-                                                                stride_r=1,
-                                                                stride_theta=1,
-                                                                stride_phi=1,
-                                                                padding='VALID'))
-        self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'])
-        self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
-                                                                   self.layers[-1]['activation'],
-                                                                   ksize=[1, 1, 3, 3, 1],
-                                                                   strides=[1, 1, 1, 2, 1]))
+        with tf.name_scope("Third_conv"):
+            self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
+                                                                    self.layers[-2]['pool'],
+                                                                    window_size_r=3,
+                                                                    window_size_theta=3,
+                                                                    window_size_phi=3,
+                                                                    channels_out=64,
+                                                                    stride_r=1,
+                                                                    stride_theta=1,
+                                                                    stride_phi=1,
+                                                                    padding='VALID'))
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="relu3")
+            self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
+                                                                       self.layers[-1]['activation'],
+                                                                       ksize=[1, 1, 3, 3, 1],
+                                                                       strides=[1, 1, 1, 2, 1]))
+
         self.print_layer(self.layers, -1, 'activation')
         self.print_layer(self.layers, -1, 'pool')
 
         ### LAYER 4 ###
-        self.layers.append({})
-        self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
-                                                                self.layers[-2]['pool'],
-                                                                window_size_r=3,
-                                                                window_size_theta=2,
-                                                                window_size_phi=3,
-                                                                channels_out=128,
-                                                                stride_r=1,
-                                                                stride_theta=1,
-                                                                stride_phi=1,
-                                                                padding='VALID'))
-        self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'])
-        self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
-                                                                   self.layers[-1]['activation'],
-                                                                   ksize=[1, 1, 1, 3, 1],
-                                                                   strides=[1, 1, 2, 1, 1]))
+        with tf.name_scope("Fourth_conv"):
+            self.layers.append({})
+            self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
+                                                                    self.layers[-2]['pool'],
+                                                                    window_size_r=3,
+                                                                    window_size_theta=2,
+                                                                    window_size_phi=3,
+                                                                    channels_out=128,
+                                                                    stride_r=1,
+                                                                    stride_theta=1,
+                                                                    stride_phi=1,
+                                                                    padding='VALID'))
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['conv'], name="relu4")
+            self.layers[-1].update(self.create_spherical_avgpool_layer(len(self.layers) - 1,
+                                                                       self.layers[-1]['activation'],
+                                                                       ksize=[1, 1, 1, 3, 1],
+                                                                       strides=[1, 1, 2, 1, 1]))
         self.print_layer(self.layers, -1, 'activation')
         self.print_layer(self.layers, -1, 'pool')
 
         ### LAYER 5 ###
         self.layers.append({})
-        self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
-                                                       self.layers[-2]['pool'],
-                                                       output_size=2048))
-        self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['dense'])
-        self.layers[-1]['dropout'] = tf.nn.dropout(self.layers[-1]['activation'], self.dropout_keep_prob)
+        with tf.name_scope("dense_layer1"):
+            self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
+                                                           self.layers[-2]['pool'],
+                                                           output_size=2048))
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['dense'], name="relu5")
+            self.layers[-1]['dropout'] = tf.nn.dropout(self.layers[-1]['activation'], self.dropout_keep_prob, name="Dropout")
         self.print_layer(self.layers, -1, 'W')
         self.print_layer(self.layers, -1, 'activation')
 
         ### LAYER 6 ###
         self.layers.append({})
-        self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
-                                                       self.layers[-2]['dropout'],
-                                                       output_size=-1))
-        self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['dense'])
-        self.layers[-1]['dropout'] = tf.nn.dropout(self.layers[-1]['activation'], self.dropout_keep_prob)
+        with tf.name_scope("dense_layer2"):
+            self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
+                                                           self.layers[-2]['dropout'],
+                                                           output_size=-1))
+            self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['dense'], name="relu6")
+            self.layers[-1]['dropout'] = tf.nn.dropout(self.layers[-1]['activation'], self.dropout_keep_prob, name="Dropout")
         self.print_layer(self.layers, -1, 'W')
         self.print_layer(self.layers, -1, 'activation')
 
         ### LAYER 7 ###
         self.layers.append({})
-        self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
-                                                       self.layers[-2]['dropout'],
-                                                       output_size=output_size))
-        self.layers[-1]['activation'] = tf.nn.softmax(self.layers[-1]['dense'])
+        with tf.name_scope("Output_layer3"):
+            self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
+                                                           self.layers[-2]['dropout'],
+                                                           output_size=output_size))
+            self.layers[-1]['activation'] = tf.nn.softmax(self.layers[-1]['dense'], name="Softmax classification")
         self.print_layer(self.layers, -1, 'W')
-        self.print_layer(self.layers, -1, 'activation')
+        self.print_layer(self.layers, -1, 'dense')
