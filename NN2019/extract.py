@@ -296,6 +296,7 @@ def extract_atomistic_features(pdb_filename, max_radius, n_feat, bins_per_angstr
 
 
 if __name__ == '__main__':
+
     import glob
     import joblib
 
