@@ -23,7 +23,7 @@ from batch_factory import get_batch
 
 config = tf.ConfigProto(allow_soft_placement=True)
 config.gpu_options.allocator_type = 'BFC'
-config.gpu_options.per_process_gpu_memory_fraction = 0.90
+config.gpu_options.per_process_gpu_memory_fraction = 0.95
 
 
 logpath = "/home/domain/yawner/2019/log/train/spherical/class/1"
@@ -93,9 +93,14 @@ class BaseModel:
         self.accuracy_summary = tf.Summary()
         self.accuracy_summary.value.add(tag='accuracy', simple_value=self.accuracy)
 
+        self.validation_accuracy = None
+        self.validation_accuracy_summary = tf.Summary()
+        self.validation_accuracy_summary.value.add(tag='validation_accuracy', simple_value=self.accuracy)
+
         # Initialize variables
         self.merged = tf.summary.merge_all()
         self.writer = tf.summary.FileWriter(logpath)
+        self.validation_writer = tf.summary.FileWriter(logpath)
         self.writer.add_graph(self.session.graph)
         tf.global_variables_initializer().run(session=self.session)
         print("Variables initialized")
@@ -176,13 +181,23 @@ class BaseModel:
                                           self.dropout_keep_prob: dropout_keep_prob})
 
                         summary, _, loss_value = self.session.run([self.merged, self.train_step, self.loss], feed_dict=feed_dict)
-                        accuracy = self.get_accuracy(vals_batch, grid_matrix_batch)
-                        self.accuracy_summary.value[0].simple_value = accuracy
 
                         self.writer.add_summary(summary, num_individual_iters)
-                        self.writer.add_summary(self.accuracy_summary, num_individual_iters)
+
                         num_individual_iters += 1
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
+
+                    accuracy = self.get_accuracy(vals_batch, grid_matrix_batch)
+                    self.accuracy_summary.value[0].simple_value = accuracy
+                    self.writer.add_summary(self.accuracy_summary, iteration)
+
+                    valid_vals_batch, valid_grid_matr_batch = validation_batch_factory.next(
+                        validation_batch_factory.data_size(),
+                        subbatch_max_size=subbatch_max_size,
+                        enforce_protein_boundaries=False)
+                    val_accuracy = self.get_accuracy(valid_vals_batch, valid_grid_matr_batch)
+                    self.validation_accuracy_summary.value[0].simple_value = val_accuracy
+                    self.validation_writer.add_summary(self.validation_accuracy_summary, iteration)
 
                     if (iteration + 1) % output_interval == 0:
 

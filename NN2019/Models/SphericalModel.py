@@ -40,7 +40,7 @@ class SphericalModel(SphericalBaseModel):
 
         ### LAYER 1 ###
         self.layers.append({})
-        with tf.name_scope("First_conv"):
+        with tf.name_scope("1st_conv"):
             self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
                                                                     self.x_high_res,
                                                                     window_size_r=3,
@@ -61,7 +61,7 @@ class SphericalModel(SphericalBaseModel):
         self.print_layer(self.layers, -1, 'pool')
 
         ### LAYER 2 ###
-        with tf.name_scope("Second_conv"):
+        with tf.name_scope("2nd_conv"):
             self.layers.append({})
             self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
                                                                     self.layers[-2]['pool'],
@@ -83,7 +83,7 @@ class SphericalModel(SphericalBaseModel):
 
         ### LAYER 3 ###
         self.layers.append({})
-        with tf.name_scope("Third_conv"):
+        with tf.name_scope("3rd_conv"):
             self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
                                                                     self.layers[-2]['pool'],
                                                                     window_size_r=3,
@@ -104,7 +104,7 @@ class SphericalModel(SphericalBaseModel):
         self.print_layer(self.layers, -1, 'pool')
 
         ### LAYER 4 ###
-        with tf.name_scope("Fourth_conv"):
+        with tf.name_scope("4th_conv"):
             self.layers.append({})
             self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
                                                                     self.layers[-2]['pool'],
