@@ -82,13 +82,16 @@ class BaseModel:
         self.saver = tf.train.Saver(max_to_keep=max_to_keep)
         self.session = tf.Session()
 
-        self.preds = self.session.run(self.x)
-
-        self.correct_pred = tf.equal(tf.argmax(self.peds, 1), tf.argmax(self.y, 1))
-
-        with tf.name_scope('accuracy'):
-            self.accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
-        tf.summary.scalar('accuracy', self.accuracy)
+        # self.preds = self.session.run(self.x_high_res)
+        #
+        # self.correct_pred = tf.equal(tf.argmax(self.peds, 1), tf.argmax(self.y, 1))
+        #
+        # with tf.name_scope('accuracy'):
+        #     self.accuracy = tf.reduce_mean(tf.cast(self.correct_pred, tf.float32))
+        # tf.summary.scalar('accuracy', self.accuracy)
+        self.accuracy = None
+        self.accuracy_summary = tf.Summary()
+        self.accuracy_summary.value.add(tag='accuracy', simple_value=self.accuracy)
 
         # Initialize variables
         self.merged = tf.summary.merge_all()
@@ -173,7 +176,11 @@ class BaseModel:
                                           self.dropout_keep_prob: dropout_keep_prob})
 
                         summary, _, loss_value = self.session.run([self.merged, self.train_step, self.loss], feed_dict=feed_dict)
+                        accuracy = self.get_accuracy(vals_batch, grid_matrix_batch)
+                        self.accuracy_summary.value[0].simple_value = accuracy
+
                         self.writer.add_summary(summary, num_individual_iters)
+                        self.writer.add_summary(self.accuracy_summary, num_individual_iters)
                         num_individual_iters += 1
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
 
@@ -271,3 +278,11 @@ class BaseModel:
         elif not return_Q:
             return F_score, loss
 
+    def get_accuracy(self, vals_batch, grid_mat_batch):
+        labes = np.argmax(vals_batch, 1)
+        preds = self.session.run(self.layers[-1]['dense'], {self.x_high_res: grid_mat_batch,
+                                                            self.dropout_keep_prob: 1.0,
+                                                            self.y: vals_batch})
+        y_ = np.argmax(preds, 1)
+        idents = (labes == y_)
+        return np.mean(idents)
