@@ -77,7 +77,6 @@ class BaseModel:
         with tf.name_scope('train_step'):
             self.train_step = tf.train.AdamOptimizer(learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(
                 self.loss)
-        tf.summary.scalar('train_step', self.train_step)
 
         # Session and saver
         self.saver = tf.train.Saver(max_to_keep=max_to_keep)
