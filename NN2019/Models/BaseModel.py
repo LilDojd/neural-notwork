@@ -26,7 +26,7 @@ config.gpu_options.allocator_type = 'BFC'
 config.gpu_options.per_process_gpu_memory_fraction = 0.95
 
 
-logpath = "/home/domain/yawner/2019/log/train/spherical/class/1"
+logpath = "/home/domain/yawner/2019/log/train/spherical/class/2"
 
 
 def variable_summaries(var, name):
@@ -95,7 +95,7 @@ class BaseModel:
 
         self.validation_accuracy = None
         self.validation_accuracy_summary = tf.Summary()
-        self.validation_accuracy_summary.value.add(tag='validation_accuracy', simple_value=self.accuracy)
+        self.validation_accuracy_summary.value.add(tag='accuracy', simple_value=self.accuracy)
 
         # Initialize variables
         self.merged = tf.summary.merge_all()
@@ -200,6 +200,9 @@ class BaseModel:
                     val_accuracy = self.get_accuracy(valid_vals_batch, valid_grid_matr_batch)
                     self.validation_accuracy_summary.value[0].simple_value = val_accuracy
                     self.validation_writer.add_summary(self.validation_accuracy_summary, iteration)
+
+                    self.writer.flush()
+                    self.validation_writer.flush()
 
                     if (iteration + 1) % output_interval == 0:
 
