@@ -359,6 +359,7 @@ class BatchFactory:
                 residue_features = {}
                 for key in self.features[pdb_id]:
                     residue_features[key] = self.features[pdb_id][key].initialize_residue_features(size)
+
                 if include_pdb_ids:
                     residue_features["pdb"] = [None for _ in range(size)]
 
@@ -377,9 +378,6 @@ class BatchFactory:
 
                 # Keep track of which pdb_ids we have prefetched residue features for
             pdb_ids.append(pdb_id)
-
-        residue_features['model_output'] = residue_features['model_output'].reshape(
-                                                                            residue_features['model_output'].shape[0], -1)
 
         # For all pre-fetched pdb_ids, make ProteinData object forget its residue data
         # (too large to keep it all in memory)

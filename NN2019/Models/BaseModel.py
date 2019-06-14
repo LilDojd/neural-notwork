@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-
 import os
 from functools import reduce
 import numpy as np
@@ -26,7 +25,7 @@ config.gpu_options.allocator_type = 'BFC'
 config.gpu_options.per_process_gpu_memory_fraction = 0.95
 
 
-logpath = "/home/domain/yawner/2019/log/train/spherical/class/2"
+logpath = "/home/domain/yawner/2019/log/train/spherical/1406bitsyVALID/"
 
 
 def variable_summaries(var, name):
@@ -99,8 +98,8 @@ class BaseModel:
 
         # Initialize variables
         self.merged = tf.summary.merge_all()
-        self.writer = tf.summary.FileWriter(logpath)
-        self.validation_writer = tf.summary.FileWriter(logpath)
+        self.writer = tf.summary.FileWriter(f"{logpath}/plot_train")
+        self.validation_writer = tf.summary.FileWriter(f"{logpath}/plot_val")
         self.writer.add_graph(self.session.graph)
         tf.global_variables_initializer().run(session=self.session)
         print("Variables initialized")
@@ -155,7 +154,6 @@ class BaseModel:
 
         # Training loop
         iteration = 0
-        num_individual_iters = 0
         with self.session.as_default():
 
             for i in range(num_passes):
@@ -182,10 +180,9 @@ class BaseModel:
 
                         summary, _, loss_value = self.session.run([self.merged, self.train_step, self.loss], feed_dict=feed_dict)
 
-                        self.writer.add_summary(summary, num_individual_iters)
-
-                        num_individual_iters += 1
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
+
+                    self.writer.add_summary(summary, iteration)
 
                     accuracy = self.get_accuracy(vals_batch, grid_matrix_batch)
                     self.accuracy_summary.value[0].simple_value = accuracy
@@ -198,6 +195,7 @@ class BaseModel:
                     valid_vals_batch = valid_batch['model_output']
                     valid_grid_matr_batch = valid_batch['high_res']
                     val_accuracy = self.get_accuracy(valid_vals_batch, valid_grid_matr_batch)
+                    print("Current validation accuracy:", val_accuracy)
                     self.validation_accuracy_summary.value[0].simple_value = val_accuracy
                     self.validation_writer.add_summary(self.validation_accuracy_summary, iteration)
 
@@ -226,6 +224,9 @@ class BaseModel:
                         self.save(self.model_checkpoint_path, iteration)
 
                     iteration += 1
+
+            self.writer.close()
+            self.validation_writer.close()
 
     def save(self, checkpoint_path, step):
 

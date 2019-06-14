@@ -13,7 +13,7 @@
 # limitations under the License.
 # =============================================================================
 
-
+from sys import getsizeof
 import os
 import random
 
@@ -43,9 +43,8 @@ class ProteinData:
             key_filter = []
         self.features = {}
 
-        # Retrieve data from npz file
+        # Retrieve data from npz file (lazy)
         protein_loader = np.load(protein_feature_filename)
-
         # Extract relevant keys
         self.seq_length = 0
         selected_feature_keys = []
@@ -93,6 +92,9 @@ class ProteinData:
         pass
 
     def forget_residue_features(self):
+        """Forget about residue information to free up space in memory."""
+        # del self.features
+        # self.features = {}
         pass
 
     def get_residue_features(self):
@@ -238,11 +240,13 @@ class BatchFactory:
         # Keep track of completed cycles through data
         self.epoch_count = 0
 
+    # it is possible to store only filenames and load them on demand to save up memory
     def add_data_set(self, key, protein_feature_names, grid_feature_names=None, key_filter=None,
                      duplicate_origin=False):
         """Add a new dataset from a list of filenames. These dataset will be represented in each batch - accessible
         by their key value """
-
+        count = 0
+        size = len(protein_feature_names)
         if key_filter is None:
             key_filter = []
         if grid_feature_names is None:
@@ -271,6 +275,8 @@ class BatchFactory:
             if pdb_id not in self.features:
                 self.features[pdb_id] = {}
             self.features[pdb_id][key] = protein_data
+            count += 1
+            print(f"Added {count} out of {size}: {pdb_id}", end="\r")
 
         # Randomize order of proteins
         self.shuffle_features()

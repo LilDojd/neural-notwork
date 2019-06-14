@@ -140,7 +140,7 @@ class SphericalModel(SphericalBaseModel):
         with tf.name_scope("dense_layer2"):
             self.layers[-1].update(self.create_dense_layer(len(self.layers) - 1,
                                                            self.layers[-2]['dropout'],
-                                                           output_size=-1))
+                                                           output_size=1024))
             self.layers[-1]['activation'] = tf.nn.relu(self.layers[-1]['dense'], name="relu6")
             self.layers[-1]['dropout'] = tf.nn.dropout(self.layers[-1]['activation'], self.dropout_keep_prob, name="Dropout")
         self.print_layer(self.layers, -1, 'W')

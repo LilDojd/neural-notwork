@@ -4,7 +4,7 @@ import h5py
 import numpy as np
 
 
-def load_grid(fname, prefix='aa', ramp='jet'):
+def load_grid(fname, prefix="sph", ramp='jet'):
 
     cmd.volume_ramp_new('ramp_DA', [
         0.00, 1.00, 1.00, 1.00, 0.00,
