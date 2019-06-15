@@ -187,20 +187,18 @@ class BaseModel:
                     accuracy = self.get_accuracy(vals_batch, grid_matrix_batch)
                     self.accuracy_summary.value[0].simple_value = accuracy
                     self.writer.add_summary(self.accuracy_summary, iteration)
+                    print("Current training accuracy:", accuracy)
 
-                    valid_batch, _ = validation_batch_factory.next(
-                        validation_batch_factory.data_size(),
-                        subbatch_max_size=subbatch_max_size,
-                        enforce_protein_boundaries=False)
-                    valid_vals_batch = valid_batch['model_output']
-                    valid_grid_matr_batch = valid_batch['high_res']
-                    val_accuracy = self.get_accuracy(valid_vals_batch, valid_grid_matr_batch)
-                    print("Current validation accuracy:", val_accuracy)
-                    self.validation_accuracy_summary.value[0].simple_value = val_accuracy
-                    self.validation_writer.add_summary(self.validation_accuracy_summary, iteration)
-
-                    self.writer.flush()
-                    self.validation_writer.flush()
+                    # valid_batch, _ = validation_batch_factory.next(
+                    #     validation_batch_factory.data_size(),
+                    #     subbatch_max_size=subbatch_max_size,
+                    #     enforce_protein_boundaries=False)
+                    # valid_vals_batch = valid_batch['model_output']
+                    # valid_grid_matr_batch = valid_batch['high_res']
+                    # val_accuracy = self.get_accuracy(valid_vals_batch, valid_grid_matr_batch)
+                    # print("Current validation accuracy:", val_accuracy)
+                    # self.validation_accuracy_summary.value[0].simple_value = val_accuracy
+                    # self.validation_writer.add_summary(self.validation_accuracy_summary, iteration)
 
                     if (iteration + 1) % output_interval == 0:
 
@@ -218,10 +216,16 @@ class BaseModel:
                             "[%d, %d] Report%s (validation set):" % (i, iteration, self.output_size))
                         Q_validation, loss_validation = self.F_score_and_loss(validation_batch,
                                                                               validation_gradient_batch_sizes)
+                        self.validation_accuracy_summary.value[0].simple_value = Q_validation
+                        self.validation_writer.add_summary(self.validation_accuracy_summary, iteration)
+
                         print("SCORE VALIDATION:", Q_validation)
                         print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
 
                         self.save(self.model_checkpoint_path, iteration)
+
+                    self.writer.flush()
+                    self.validation_writer.flush()
 
                     iteration += 1
 
