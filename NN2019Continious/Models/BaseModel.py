@@ -25,7 +25,7 @@ config.gpu_options.allocator_type = 'BFC'
 config.gpu_options.per_process_gpu_memory_fraction = 0.90
 
 
-logpath = "/home/domain/yawner/2019/log/train/spherical/1"
+logpath = "/home/domain/yawner/2019/log/train/spherical/2406regr/"
 
 
 def variable_summaries(var, name):
@@ -184,6 +184,8 @@ class BaseModel:
                         self.writer.add_summary(summary, num_individual_iters)
                         num_individual_iters += 1
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
+
+
 
                     if (iteration + 1) % output_interval == 0:
 

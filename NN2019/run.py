@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+from sklearn.metrics import classification_report as report
 
 
 class BCOLORS:
@@ -226,3 +227,6 @@ if __name__ == '__main__':
         # noinspection PyStringFormat
         print("# Q%s score (test set): %f" % (output_size, Q_accuracy))
         print("# loss (test set):", np.mean(entropies) + options.reg_fact)
+        F_score = report(y_argmax, predictions, target_names=['Worse', 'Same', 'Better'])
+        print(F_score)
+
