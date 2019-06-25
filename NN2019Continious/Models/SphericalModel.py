@@ -43,7 +43,7 @@ class SphericalModel(SphericalBaseModel):
         with tf.name_scope("First_conv"):
             self.layers[-1].update(self.create_spherical_conv_layer(len(self.layers) - 1,
                                                                     self.x_high_res,
-                                                                    window_size_r=3,
+                                                                    window_size_r=5,
                                                                     window_size_theta=5,
                                                                     window_size_phi=5,
                                                                     channels_out=16,

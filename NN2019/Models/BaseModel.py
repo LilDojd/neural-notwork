@@ -94,7 +94,7 @@ class BaseModel:
 
         self.validation_accuracy = None
         self.validation_accuracy_summary = tf.Summary()
-        self.validation_accuracy_summary.value.add(tag='accuracy', simple_value=self.accuracy)
+        self.validation_accuracy_summary.value.add(tag='accuracy', simple_value=self.validation_accuracy)
 
         # Initialize variables
         self.merged = tf.summary.merge_all()

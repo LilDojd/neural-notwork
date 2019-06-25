@@ -14,12 +14,6 @@
 # =============================================================================
 
 
-def _z_score_params(col):
-    mean = col.mean()
-    std = col.std()
-    return {'mean': mean, 'std': std}
-
-
 if __name__ == '__main__':
     import glob
     import os
@@ -81,11 +75,12 @@ if __name__ == '__main__':
         glob.glob(os.path.join(options.high_res_features_input_dir, "*residue_features.npz")))
 
     train_start = 0
-    validation_end = test_start = int(len(high_res_protein_feature_filenames) * (1. - options.test_set_fraction))
+    validation_end = test_start = 5 * int(len(high_res_protein_feature_filenames) // 5 * (1. - options.test_set_fraction))
     train_end = validation_start = int(validation_end - options.validation_set_size)
     test_end = len(high_res_protein_feature_filenames)
 
     print("# Data:")
+    print("Number of unique proteins: ", len(high_res_protein_feature_filenames)//5)
     print("Total size: ", len(high_res_protein_feature_filenames))
     print("Training size: ", train_end - train_start)
     print("Validation size: ", validation_end - validation_start)
@@ -99,7 +94,7 @@ if __name__ == '__main__':
         batch_factory.add_data_set("model_output",
                                    high_res_protein_feature_filenames[:train_end],
                                    key_filter=[options.model_output_type])
-
+        print("Train dataset added")
         validation_batch_factory = BatchFactory()
         validation_batch_factory.add_data_set("high_res",
                                               high_res_protein_feature_filenames[validation_start:validation_end],
@@ -107,6 +102,7 @@ if __name__ == '__main__':
         validation_batch_factory.add_data_set("model_output",
                                               high_res_protein_feature_filenames[validation_start:validation_end],
                                               key_filter=[options.model_output_type])
+        print("Validation fraction added")
     elif options.mode == 'test':
         batch_factory = BatchFactory()
         batch_factory.add_data_set("high_res",
@@ -120,10 +116,9 @@ if __name__ == '__main__':
 
     holder = batch_factory.next(1, increment_counter=False)
     high_res_grid_size = holder[0]["high_res"].shape
-    output_size = batch_factory.next(1, increment_counter=False)[0]["model_output"].shape[1]
+    output_size = 1
     # en_val_col = batch_factory.next(len(high_res_protein_feature_filenames) - 1, increment_counter=False)[0]["model_output"]
     # temporarily hardcoded
-    stdict = {'mean': 0, 'std': 1}
 
     if options.model.startswith("Spherical"):
         model = models[options.model](r_size_high_res=high_res_grid_size[1],
@@ -170,8 +165,7 @@ if __name__ == '__main__':
                     max_batch_size=options.max_batch_size,
                     subbatch_max_size=options.subbatch_max_size,
                     dropout_keep_prob=options.dropout_keep_prob,
-                    output_interval=options.output_interval,
-                    stdict=stdict)
+                    output_interval=options.output_interval)
 
     elif options.mode == 'test':
 
@@ -185,7 +179,7 @@ if __name__ == '__main__':
         while more_data:
             batch, subbatch_sizes = batch_factory.next(options.max_batch_size,
                                                        subbatch_max_size=options.subbatch_max_size,
-                                                       enforce_protein_boundaries=True,
+                                                       enforce_protein_boundaries=False,
                                                        include_pdb_ids=True,
                                                        return_single_proteins=True)
             subbatch_sizes = subbatch_sizes.astype(np.int32)

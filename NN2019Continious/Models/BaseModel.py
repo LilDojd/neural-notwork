@@ -17,6 +17,8 @@ import os
 from functools import reduce
 import numpy as np
 import tensorflow as tf
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
 
 from batch_factory import get_batch
 
@@ -76,20 +78,25 @@ class BaseModel:
         self.train_step = tf.train.AdamOptimizer(learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-08).minimize(
             self.loss)
 
-        with tf.name_scope('metrics'):
-            with tf.name_scope('Rsq'):
-                self.Rsquared = 0.
-            with tf.name_scope('R'):
-                self.Rscore = 0.
-        tf.summary.scalar('r_squared', self.Rsquared)
-        tf.summary.scalar('r_score', self.Rscore)
+        # with tf.name_scope('metrics'):
+        #     with tf.name_scope('Rsq'):
+        #         self.Rsquared = 0.
+        #     with tf.name_scope('R'):
+        #         self.Rscore = 0.
+        # tf.summary.scalar('r_squared', self.Rsquared)
+        # tf.summary.scalar('r_score', self.Rscore)
+
+        self.Rscore = None
+        self.Rscore_summary = tf.Summary()
+        self.Rscore_summary.value.add(tag='Rscore', simple_value=self.Rscore)
+
+        self.validation_Rscore = None
+        self.validation_accuracy_Rscore = tf.Summary()
+        self.validation_accuracy_Rscore.value.add(tag='Rscore', simple_value=self.validation_Rscore)
 
         # Session and saver
         self.saver = tf.train.Saver(max_to_keep=max_to_keep)
         self.session = tf.Session()
-
-        self.mean = 0
-        self.std = 1
 
         # Initialize variables
         self.merged = tf.summary.merge_all()
@@ -142,14 +149,8 @@ class BaseModel:
               subbatch_max_size=25,
               validation_batch_factory=None,
               output_interval=10,
-              dropout_keep_prob=0.5,
-              stdict=None):
+              dropout_keep_prob=0.5):
 
-        if stdict is None:
-            stdict = {'mean': 0, 'std': 1}
-
-        self.mean = stdict['mean']
-        self.std = stdict['std']
 
         print("dropout keep probability: ", dropout_keep_prob)
 
@@ -170,14 +171,14 @@ class BaseModel:
 
                     grid_matrix = batch["high_res"]
 
-                    vals = (batch["model_output"] - self.mean) / self.std
+                    vals = batch["model_output"]
 
                     for sub_iteration, (index, length) in enumerate(
                             zip(np.cumsum(gradient_batch_sizes) - gradient_batch_sizes, gradient_batch_sizes)):
                         grid_matrix_batch, vals_batch = get_batch(index, index + length, grid_matrix, vals)
 
                         feed_dict = dict({self.x_high_res: grid_matrix_batch,
-                                          self.y: vals_batch,
+                                          self.y: vals_batch.reshape(-1, 1),
                                           self.dropout_keep_prob: dropout_keep_prob})
 
                         summary, _, loss_value = self.session.run([self.merged, self.train_step, self.loss], feed_dict=feed_dict)
@@ -185,15 +186,13 @@ class BaseModel:
                         num_individual_iters += 1
                         print("[%d, %d, %02d] loss = %f" % (i, iteration, sub_iteration, loss_value))
 
-
-
                     if (iteration + 1) % output_interval == 0:
 
                         print("[%d, %d] Report%s (training batch):" % (
                             i, iteration, self.output_size))
 
-                        R_training_batch, adjR, loss_training_batch = self.metrics(batch, gradient_batch_sizes)
-                        print("SCORE TRAINING:", f"Rsq-score: {R_training_batch} R-score: {adjR}")
+                        R_training_batch, rmse_train, loss_training_batch = self.metrics(batch, gradient_batch_sizes)
+                        print("SCORE TRAINING:", f"Rsq-score: {R_training_batch} RMSE: {rmse_train}")
                         print("[%d, %d] loss (training batch) = %f" % (i, iteration, loss_training_batch))
 
                         validation_batch, validation_gradient_batch_sizes = validation_batch_factory.next(
@@ -202,11 +201,11 @@ class BaseModel:
                             enforce_protein_boundaries=False)
                         print(
                             "[%d, %d] Report%s (validation set):" % (i, iteration, self.output_size))
-                        R_validation_batch, adjRval, loss_validation = self.metrics(validation_batch,
+                        R_validation_batch, rmse, loss_validation = self.metrics(validation_batch,
                                                                                     validation_gradient_batch_sizes)
                         self.Rsquared = R_validation_batch
-                        self.Rscore = adjR
-                        print("SCORE TRAINING:", f"Rsq-score: {R_validation_batch} R-score: {adjRval}")
+                        self.Rscore = rmse
+                        print("SCORE Validation:", f"Rsq-score: {R_validation_batch} RMSE: {rmse}")
                         print("[%d, %d] loss (validation set) = %f" % (i, iteration, loss_validation))
 
                         self.save(self.model_checkpoint_path, iteration)
@@ -240,7 +239,7 @@ class BaseModel:
         grid_matrix = batch["high_res"]
 
         if include_output:
-            labels = (batch["model_output"] - self.mean) / self.std
+            labels = batch["model_output"]
 
         results = []
 
@@ -251,7 +250,7 @@ class BaseModel:
 
             if include_output:
                 vals_batch, = get_batch(index, index + length, labels)
-                feed_dict[self.y] = vals_batch
+                feed_dict[self.y] = vals_batch.reshape(-1, 1)
 
             results.append(self.session.run(var, feed_dict=feed_dict))
 
@@ -267,21 +266,16 @@ class BaseModel:
         results = self._infer(batch, gradient_batch_sizes, var=[self.layers[-1]['dense'], self.entropy],
                               include_output=True)
         y_, entropies = list(map(np.concatenate, list(zip(*results))))
-        labes = self.std * y.T[0] + self.mean
-        pred = self.std * y_.T[0] + self.mean
-        print(np.vstack((labes, pred)))
-        total_error = tf.reduce_sum(tf.square(tf.subtract(labes, tf.reduce_mean(y))))
-        unexplained_error = tf.reduce_sum(tf.square(tf.subtract(labes, pred)))
-        R_squared = tf.subtract(tf.div(total_error, unexplained_error), 1.0)
-        R = tf.multiply(tf.sign(R_squared), tf.sqrt(tf.abs(unexplained_error)))
+
+        pred = y_.T[0]
+        R_squared = r2_score(y, pred)
+        rmse = np.sqrt(mean_squared_error(y, pred))
 
         regularization = self.session.run(self.regularization, feed_dict={})
-        R_squared = self.session.run(R_squared, feed_dict={})
-        R = self.session.run(R, feed_dict={})
         loss = np.mean(entropies) + regularization
 
         if return_raw:
             return loss, entropies, regularization
         else:
-            return R_squared, R, loss
+            return R_squared, rmse, loss
 

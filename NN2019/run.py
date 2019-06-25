@@ -129,7 +129,8 @@ if __name__ == '__main__':
 
     holder = batch_factory.next(1, increment_counter=False)
     high_res_grid_size = holder[0]["high_res"].shape
-    output_size = batch_factory.next(1, increment_counter=False)[0]["model_output"].shape[1]
+    out = batch_factory.next(1, increment_counter=False)[0]["model_output"]
+    output_size = out.shape[1]
 
     if options.model.startswith("Spherical"):
         model = models[options.model](r_size_high_res=high_res_grid_size[1],
